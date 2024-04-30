@@ -137,7 +137,7 @@ APPEND_SLASH = False
 # settings.py
 
 CORS_ALLOWED_ORIGINS = [
-    'https://app-frontendprueba-f346984aaa03.herokuapp.com',
+    'https://osirisybioaxis-31ea9bf3d8f8.herokuapp.com',
 ]
 
 
@@ -150,7 +150,7 @@ CORS_ORIGIN_ALLOW_ALL: True
 
 CORS_ORIGIN_WHITELIST = [
     'http://localhost:4200',
-    'https://app-frontendprueba-f346984aaa03.herokuapp.com/'
+    'https://osirisybioaxis-31ea9bf3d8f8.herokuapp.com/'
 ]
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media').replace('\\', '/')
