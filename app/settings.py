@@ -28,7 +28,7 @@ SECRET_KEY = ')m(3-ur#5ar4fnyfmsis*9$_3s@m+uz(-r$u)6lx6a*^ln_8j)'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-ALLOWED_HOSTS = ['app-proyecto-119c428c75f0.herokuapp.com']
+ALLOWED_HOSTS = ['pruebabackend-86ba2adf9f62.herokuapp.com']
 
 
 
