@@ -65,19 +65,6 @@ class CustomAuthToken(APIView):
             'unidadacademica': investigador.unidadAcademica,
             'horariosformacion': investigador.horasformacion,
             'horariosestrictos': investigador.horasestricto,
-            'tipPosgrado': {
-                'id': investigador.tipPosgrado.id,
-                'titulo': investigador.tipPosgrado.titulo,
-                'fecha': investigador.tipPosgrado.fecha,
-                'institucion': investigador.tipPosgrado.institucion,
-                'tipo': investigador.tipPosgrado.tipo,
-            },
-            'tipPregrado': {
-                'id': investigador.tipPregrado.id,
-                'titulo': investigador.tipPregrado.titulo,
-                'fecha': investigador.tipPregrado.fecha,
-                'institucion': investigador.tipPregrado.institucion,
-            },
         }
         return Response({'token': access_token, 'user_data': user_data}, status=status.HTTP_200_OK)
 

@@ -9,29 +9,6 @@ from django.utils import timezone
 # colocamos los atributos de la clase
 # ----------------------- INVESTIGADOR -----------------------
 
-class Posgrado(models.Model):
-    id = models.CharField(max_length=50, primary_key=True)
-    titulo = models.CharField(max_length=50)
-    fecha = models.DateField(max_length=50)
-    institucion = models.CharField(max_length=50)
-    tipo = [
-        ('Especialización', 'Especialización'),
-        ('Maestría', 'Maestría'),
-        ('Doctorado', 'Doctorado'),
-        ('NA', 'No aplica')
-    ]
-    tipo = models.CharField(max_length=50, choices=tipo, default='NA')
-    class Meta:
-        db_table = 'proyecto_Posgrado'
-
-class Pregrado(models.Model):
-    id = models.CharField(max_length=50, primary_key=True)
-    titulo = models.CharField(max_length=50)
-    fecha = models.DateField(max_length=50)
-    institucion = models.CharField(max_length=50)
-    class Meta:
-        db_table = 'proyecto_Pregrado'
-
 class Grupoinvestigacion(models.Model):
     codigo = models.CharField(max_length=50, primary_key=True)
     nombre = models.CharField(max_length=50)
@@ -68,10 +45,8 @@ class Investigador(models.Model):
         ('PA', 'Pasaporte'),
     ]
     tipodocumento = models.CharField(max_length=2, choices=tipodpcumento, default='CC')
-    tipPosgrado = models.ForeignKey(Posgrado,null=False,blank=False,on_delete=models.CASCADE)
-    tipPregrado = models.ForeignKey(Pregrado,null=False,blank=False,on_delete=models.CASCADE)
-    horasestricto = models.IntegerField()
-    horasformacion = models.IntegerField()
+    horasestricto = models.IntegerField(default=0)
+    horasformacion = models.IntegerField(default=0)
     unidadAcademica = models.CharField(max_length=50)
     grupoinvestigacion = models.ForeignKey(Grupoinvestigacion,null=False,blank=False,on_delete=models.CASCADE)
     categoriaminciencias = [
@@ -109,6 +84,35 @@ class Investigador(models.Model):
     deferred_setup()
     class Meta:
         db_table = 'proyecto_Investigador'
+        
+class Posgrado(models.Model):
+    id = models.AutoField(primary_key=True)
+    titulo = models.CharField(max_length=50)
+    fecha = models.DateField(max_length=50)
+    institucion = models.CharField(max_length=50)
+    tipo = [
+        ('Especialización', 'Especialización'),
+        ('Maestría', 'Maestría'),
+        ('Doctorado', 'Doctorado'),
+        ('NA', 'No aplica')
+    ]
+    tipo = models.CharField(max_length=50, choices=tipo, default='NA')
+    Investigador_id = models.ForeignKey(Investigador,null=False,blank=False,on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+    class Meta:
+        db_table = 'proyecto_Posgrado'
+
+class Pregrado(models.Model):
+    id = models.AutoField(primary_key=True)
+    titulo = models.CharField(max_length=50)
+    fecha = models.DateField(max_length=50)
+    institucion = models.CharField(max_length=50)
+    Investigador_id = models.ForeignKey(Investigador,null=False,blank=False,on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+    class Meta:
+        db_table = 'proyecto_Pregrado'
 
 #---------------------------------------------------------------------------------------
 # ----------------------------------------------------- Producto -----------------------

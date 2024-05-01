@@ -53,10 +53,36 @@ class grupoInvestigacionList(generics.ListCreateAPIView):
 class posgradoList(generics.ListCreateAPIView):
     queryset = Posgrado.objects.all()
     serializer_class = posgradoSerializer
+    
+    def post(self, request, *args, **kwargs):
+        data = {
+            'Investigador_id': Investigador.objects.get(pk=request.data.get('investigadorId')),
+            'institucion': request.data.get('institucion2'),
+            'fecha': request.data.get('fecha2'),
+            'titulo': request.data.get('titulo2'),
+            'tipo': request.data.get('tipo2')
+        }
+        pregrado = Posgrado.objects.create(**data)
+        serializer = posgradoSerializer(pregrado) 
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class pregradoList(generics.ListCreateAPIView):
     queryset = Pregrado.objects.all()
     serializer_class = pregradoSerializer
+    
+    def post(self, request, *args, **kwargs):
+        data = {
+            'Investigador_id': Investigador.objects.get(pk=request.data.get('investigadorId')),
+            'institucion': request.data.get('institucion'),
+            'fecha': request.data.get('fecha'),
+            'titulo': request.data.get('titulo'),
+        }
+        pregrado = Pregrado.objects.create(**data)
+        serializer = pregradoSerializer(pregrado) 
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
 
 class ubicacionList(generics.ListCreateAPIView):
     queryset = Ubicacion.objects.all()
@@ -65,6 +91,25 @@ class ubicacionList(generics.ListCreateAPIView):
 class investigadorRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
     queryset = Investigador.objects.all()
     serializer_class = investigadorSerializer
+    
+    def put(self, request, *args, **kwargs):
+        obj = Investigador.objects.get(pk=request.data.get('numerodocumento'))
+        obj.apellidos = request.data.get('apellidos')
+        obj.correo = request.data.get('correo')
+        obj.escalofonodocente = request.data.get('escalofonodocente')
+        obj.horasestricto = 0 if request.data.get('horariosestrictos') is None else request.data.get('horariosestrictos')
+        obj.horasformacion = 0 if request.data.get('horariosformacion') is None else request.data.get('horariosformacion')
+        obj.lineainvestigacion = request.data.get('lineainvestigacion')
+        obj.nombre = request.data.get('nombre')
+        obj.tipodocumento = request.data.get('tipodocumento')
+        obj.unidadAcademica = 'N/A' if request.data.get('unidadacademica') is None else request.data.get('unidadacademica')
+        if request.data.get('estado') != None:
+            obj.estado = request.data.get('estado')
+        if request.data.get('rolinvestigador') != None:
+            obj.rolinvestigador = request.data.get('rolinvestigador')
+        obj.save()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class imagenRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
     queryset = Imagen.objects.all()
