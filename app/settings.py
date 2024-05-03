@@ -148,7 +148,7 @@ SIMPLE_JWT = {
 
 CORS_ORIGIN_ALLOW_ALL: True
 
-ALLOWED_HOSTS = [ 'https://osirisybioaxis-31ea9bf3d8f8.herokuapp.com']
+ALLOWED_HOSTS = []
 
 CORS_ORIGIN_WHITELIST = [
     'http://localhost:4200',
