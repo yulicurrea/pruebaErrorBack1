@@ -295,8 +295,8 @@ class productoRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
     
     def put(self, request, *args, **kwargs):
         obj = Producto.objects.get(pk=request.data.get('id'))
-        if request.data.get('EstadoProducto'):
-            obj.estadoProducto = EstadoProducto.objects.get(pk=request.data.get('EstadoProducto'))
+        if request.data.get('estadoProducto'):
+            obj.estadoProducto = EstadoProducto.objects.get(pk=request.data.get('estadoProducto'))
         elif request.data.get('estado'):
             obj.estadoProducto = EstadoProducto.objects.get(pk=request.data.get('estado'))
         obj.estadoProceso = request.data.get('estadoProceso')
