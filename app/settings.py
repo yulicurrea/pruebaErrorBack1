@@ -146,7 +146,9 @@ SIMPLE_JWT = {
     # Otras configuraciones JWT si es necesario
 }
 
-CORS_ORIGIN_ALLOW_ALL: True 
+CORS_ORIGIN_ALLOW_ALL: True
+
+ALLOWED_HOSTS = [ 'https://osirisybioaxis-31ea9bf3d8f8.herokuapp.com']
 
 CORS_ORIGIN_WHITELIST = [
     'http://localhost:4200',
