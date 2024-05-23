@@ -2,6 +2,7 @@ import statistics
 from http.client import responses
 from telnetlib import STATUS
 from urllib import response
+from .utils import send_registration_email
 
 from django.forms import ValidationError
 from rest_framework import generics, status
@@ -41,6 +42,10 @@ from .serializer import (apropiacionSerializer, articulosSerializer,
 class investigadorList(generics.ListCreateAPIView):
     queryset = Investigador.objects.all()
     serializer_class = investigadorSerializer
+    
+    def perform_create(self, serializer):
+        Investigador = serializer.save()
+        send_registration_email(Investigador)
     
 class imagenList(generics.ListCreateAPIView):
     queryset = Imagen.objects.all()
