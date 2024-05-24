@@ -84,15 +84,14 @@ WSGI_APPLICATION = 'app.wsgi.application'
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
 DATABASES = {
-      'default': {
+     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'USER': 'postgres',
-        'PASSWORD':'proyecto',
-        'HOST':'localhost',	
+        'NAME': 'd5b1q5tncqv79q',
+        'USER': 'u4rleu5nub4dv8',
+        'PASSWORD':'p34f30afa59394aa053204dee821843dc477156b3757d2aadf366ac2e34b476cc',
+        'HOST':'ce1r1ldap2qd4b.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com',	
         'PORT':'5432',
     }
-
 }
 # correo
 
