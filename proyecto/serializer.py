@@ -8,20 +8,22 @@ from .models import (Apropiacion, Articulos, AvanceProyecto, Notificaciones, Cap
                      Industrial, Investigador, Libros, Licencia, ListaProducto, Maestria, ConfiguracionEntregableProyecto,
                      ParticipantesExternos, Posgrado, PregFinalizadoyCurso,
                      Pregrado, Producto, Proyecto, Reconocimientos, Software,
-                     TipoEventos, Transacciones, Ubicacion, UbicacionProyecto)
+                     TipoEventos, Transacciones, Ubicacion, UbicacionProyecto, ConfiguracionPlanTrabajo, PlanTrabajo)
 
 #------------------------ investigador ------------------------
-
-class investigadorSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Investigador
-        fields = '__all__'
 
 class imagenSerializer(serializers.ModelSerializer):
     class Meta:
         model = Imagen
         fields = '__all__'
         
+class investigadorSerializer(serializers.ModelSerializer):
+    imagen = imagenSerializer(read_only=True)
+    class Meta:
+        model = Investigador
+        fields = '__all__'
+
+    
 class ubicacionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ubicacion
@@ -147,12 +149,17 @@ class estadoProductoSerializer(serializers.ModelSerializer):
     class Meta:
         model = EstadoProducto
         fields = '__all__'
+
     
 class productoSerializer(serializers.ModelSerializer):
     Soporte = serializers.FileField(required=False)
+    tipo_producto = serializers.SerializerMethodField()
     class Meta:
         model = Producto
         fields = '__all__'
+    def get_tipo_producto(self, obj):
+        return obj.tipo_producto()
+    
     
 
 #------------------------ PROYECTOS ------------------------
@@ -219,4 +226,17 @@ class proyectoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Proyecto
         fields = '__all__'
-    
+
+class planTrabajoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PlanTrabajo
+        fields = '__all__' 
+
+class configuracionPlanTrabajoSerializer(serializers.ModelSerializer):
+    planTrabajo = planTrabajoSerializer(read_only=True, many=True)
+    estado = serializers.BooleanField(read_only=True)
+
+    class Meta:
+        model = ConfiguracionPlanTrabajo
+        fields = ['id', 'fecha', 'estado_manual', 'estado_fecha', 'titulo', 'planTrabajo', 'estado']
+        read_only_fields = ('estado_fecha', 'estado')

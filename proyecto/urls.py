@@ -1,8 +1,8 @@
 from django.urls import path
 
 from .autentication import (ActualizarDatosUsuario, CrearNuevoProducto,
-                            CrearProyecto, CustomAuthToken,
-                            MostrarInvestigadores, MostrarProductos)
+                            CrearProyecto, CustomAuthToken,MostrarPlanTrabajo,
+                            MostrarInvestigadores, MostrarProductos, MostrarPyPdeInvestigador, Trazabilidad)
 from .viewsets import (apropiacionList, apropiacionRetrieveUpdateDestroy,
                        articuloRetrieveUpdateDestroy, articulosList,
                        avanceProyectoList, avanceProyectoRetrieveUpdateDestroy,
@@ -46,9 +46,13 @@ from .viewsets import (apropiacionList, apropiacionRetrieveUpdateDestroy,
                        transaccionesList, transaccionesRetrieveUpdateDestroy,
                        ubicacionList, ubicacionProyectoList,
                        ubicacionProyectoRetrieveUpdateDestroy,
-                       ubicacionRetrieveUpdateDestroy)
+                       ubicacionRetrieveUpdateDestroy, ResetPasswordViewSet,
+                       ResetPasswordConfirmViewSet, ResetPasswordFormViewSet, planTrabajoList, planTrabajoRetrieveUpdateDestroy, configuracionPlanTrabajoList, configuracionPlanTrabajoRetrieveUpdateDestroy)
 
 urlpatterns = [
+    path('trazabilidad', Trazabilidad.as_view(), name='create-trazabilidad'),
+
+    
     path('custom-token-auth/', CustomAuthToken.as_view(), name='custom_token_auth'),
     path("CrearProyecto", CrearProyecto.as_view(), name="Crear-Proyecto"),
     path("CrearProducto", CrearNuevoProducto.as_view(), name="Crear-NuevoProducto"),
@@ -62,6 +66,13 @@ urlpatterns = [
     path('tipoEventos', tipoEventoList.as_view(), name='create-tipoEventos-list'),
     path('estadoproducto', estadoProductoList.as_view(), name='create-estadoProducto-list'),
     path('estadoproyecto', estadoProyectoList.as_view(), name='create-estadoProyecto-list'),
+
+    path('planTrabajo', planTrabajoList.as_view(), name='create-planTrabajo-list'),
+    path('planTrabajo/<pk>', planTrabajoRetrieveUpdateDestroy.as_view(), name='planTrabajo-detail'),
+    path('ConfiguracionPlanTrabajo', configuracionPlanTrabajoList.as_view(), name='create-configuracionPlanTraba-list'),
+    path('ConfiguracionPlanTrabajo/<pk>', configuracionPlanTrabajoRetrieveUpdateDestroy.as_view(), name='configuracionPlanTraba-detail'),
+    path('mostrar-plan-trabajo', MostrarPlanTrabajo.as_view(), name='mostrar-plan-trabajo'),
+    path('mostrarPyP', MostrarPyPdeInvestigador.as_view(), name='mostrarPyP'),
 
 
     path('investigador', investigadorList.as_view(), name='create-investigador-list'),
@@ -133,4 +144,7 @@ urlpatterns = [
     path('proyecto/<pk>', proyectoRetrieveUpdateDestroy.as_view(), name='proyecto-detail'),
     path('imagen', imagenList.as_view(), name='create-imagen-list'),
     path('imagen/<int:pk>', imagenRetrieveUpdateDestroy.as_view(), name='imagen-detail'),
+    path('reset-password/', ResetPasswordViewSet.as_view({'post': 'create'}), name='reset-password'),#URL para iniciar el proceso de restablecimiento de contraseña.
+    path('reset-password-confirm/<str:token_temporal>/', ResetPasswordFormViewSet.as_view({'get': 'retrieve'}), name='reset-password-form'),#URL para mostrar el formulario de restablecimiento de contraseña basado en un token temporal.
+    path('reset-password-confirm/', ResetPasswordConfirmViewSet.as_view({'post': 'create'}), name='reset-password-confirm'),#URL para confirmar el restablecimiento de contraseña después de ingresar la nueva contraseña y el token temporal.
 ]

@@ -17,8 +17,6 @@ from datetime import timedelta
 # BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
@@ -28,8 +26,8 @@ SECRET_KEY = ')m(3-ur#5ar4fnyfmsis*9$_3s@m+uz(-r$u)6lx6a*^ln_8j)'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-ALLOWED_HOSTS = ['.vercel.app   ']
 
+ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -84,24 +82,21 @@ WSGI_APPLICATION = 'app.wsgi.application'
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
 DATABASES = {
-     'default': {
+    'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'local',
-        'USER': 'default',
-        'PASSWORD':'TGIjm12zMWrc',
-        'HOST':'ep-super-block-a4oj3jwt-pooler.us-east-1.aws.neon.tech',	
+        'NAME': 'postgres',
+        'USER': 'postgres',
+        'PASSWORD':'proyecto',
+        'HOST':'localhost',	
         'PORT':'5432',
     }
 }
-# correo
-
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'  
+EMAIL_HOST = 'smtp.gmail.com' 
 EMAIL_PORT = 587  
 EMAIL_USE_TLS = True  
-EMAIL_HOST_USER = 'osirisbioaxis@gmail.com'  
-EMAIL_HOST_PASSWORD = 'cpnp oaug fnbg gyho'  
-
+EMAIL_HOST_USER = 'osirisbioaxis@gmail.com'
+EMAIL_HOST_PASSWORD = 'cpnp oaug fnbg gyho'
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
@@ -145,21 +140,19 @@ APPEND_SLASH = False
 # settings.py
 
 CORS_ALLOWED_ORIGINS = [
-    'https://osirisybioaxis-31ea9bf3d8f8.herokuapp.com',
+    'http://localhost:4200',  # Agrega aquí el origen de tu frontend Angular
+    # Otros orígenes permitidos si es necesario...
 ]
-
 
 SIMPLE_JWT = {
     'USER_ID_FIELD': 'numerodocumento',
     # Otras configuraciones JWT si es necesario
 }
 
-CORS_ORIGIN_ALLOW_ALL: True
-
+CORS_ORIGIN_ALLOW_ALL: True 
 
 CORS_ORIGIN_WHITELIST = [
     'http://localhost:4200',
-    'https://osirisybioaxis-31ea9bf3d8f8.herokuapp.com/'
 ]
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media').replace('\\', '/')

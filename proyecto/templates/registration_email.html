@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Registro exitoso</title>
+    <title>Registro Exitoso</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -20,9 +20,11 @@
         }
         h1 {
             color: #007bff;
+            text-align: center;
         }
         p {
             line-height: 1.5;
+            color: #555555;
         }
         .footer {
             margin-top: 20px;
@@ -33,21 +35,26 @@
         .highlighted-text {
             color: #ff0000; 
         }
+        ul {
+            color: #555555;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>¡Registro exitoso!</h1>
+        <h1>¡Registro Exitoso!</h1>
         <p>Hola {{ nombre }} {{ apellidos }},</p>
-        <p>Tu cuenta ha sido registrada con éxito. <span class="highlighted-text">Por favor, espera a que el administrador active tu cuenta para poder ingresar.</span></p>
-        <p>Al momento de iniciar sesión, utiliza la siguiente información:</p>
+        <p>Su cuenta ha sido registrada con éxito en la página del Grupo de Investigación OSIRIS & BIOAXIS. <span class="highlighted-text">Por favor, espere a que el administrador active su cuenta para poder ingresar.</span></p>
+        <p>Al momento de iniciar sesión, utilice la siguiente información:</p>
         <ul>
             <li><strong>Correo electrónico:</strong> {{ correo }}</li>
-            <li><strong>Contraseña:</strong> La contraseña que estableciste al registrarte</li>
+            <li><strong>Contraseña:</strong> La contraseña que estableció al registrarse</li>
         </ul>
+        <p>Atentamente,</p>
+        <p>Grupo de Investigación OSIRIS & BIOAXIS</p>
     </div>
     <div class="footer">
-        Este es un correo electrónico automático. Por favor, no respondas a este mensaje.
+        Este es un correo electrónico automático. Por favor, no responda a este mensaje.
     </div>
 </body>
 </html>

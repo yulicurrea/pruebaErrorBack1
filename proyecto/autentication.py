@@ -13,24 +13,31 @@ import json
 from datetime import datetime
 from django.utils.timezone import make_aware
 import ast
+import base64
+import re
+from django.db.models import Q
+from django.core.files.base import ContentFile
 
-from .models import (Apropiacion, Articulos, Capitulos, Consultoria, Contenido,
+from .models import (Apropiacion, Articulos, Capitulos, Consultoria, Contenido,Imagen, Notificaciones,
                      Contrato, EntidadPostulo, EstadoProyecto,
                      Estudiantes, Eventos, Financiacion, Industrial, ConfiguracionEntregableProducto, ConfiguracionEntregableProyecto, 
                      Investigador, Libros, Licencia, ListaProducto, Maestria, AvanceEntregableProducto, AvanceEntregableProyecto,
                      PregFinalizadoyCurso, Producto, Proyecto, Reconocimientos,
-                     Software, Transacciones, UbicacionProyecto, ParticipantesExternos, EstadoProducto,
+                     Software, Transacciones, UbicacionProyecto, ParticipantesExternos, EstadoProducto, ConfiguracionPlanTrabajo,
                      CategoriaMinciencias,CuartilEsperado,TipoEventos)
-from .serializer import (investigadorSerializer, productoSerializer,
-                         proyectoSerializer)
-
+from .serializer import (investigadorSerializer, productoSerializer,listaProductoSerializer,
+                         proyectoSerializer,grupoinvestigacionSerializer, categoriaMincienciasSerializer, cuartilEsperadoSerializer)
+from rest_framework.parsers import MultiPartParser, FormParser
 
 class CustomAuthToken(APIView):
     def post(self, request, *args, **kwargs):
+        
+        # Extrae el correo y la contraseña del cuerpo de la solicitud
         email = request.data.get('correo')
         password = request.data.get('contrasena')
 
         try:
+            # Intenta obtener al investigador con el correo proporcionado
             investigador = Investigador.objects.get(correo=email)
         except Investigador.DoesNotExist:
             print("Investigador no encontrado")
@@ -43,7 +50,7 @@ class CustomAuthToken(APIView):
             print("Contraseña almacenada en la base de datos:", investigador.contrasena)
             return Response({'error': 'Credenciales inválidas'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        # Generar tokens
+        # Genera tokens de acceso y refresco
         refresh = RefreshToken.for_user(investigador)
         access_token = {
             'refresh': str(refresh),
@@ -53,7 +60,7 @@ class CustomAuthToken(APIView):
             'estado': investigador.estado
         }
 
-        # Obtener y devolver datos del usuario
+        # Obtiene y organiza los datos del usuario para devolverlos en la respuesta
         user_data = {
             'nombre': investigador.nombre,
             'apellidos': investigador.apellidos,
@@ -69,20 +76,42 @@ class CustomAuthToken(APIView):
         return Response({'token': access_token, 'user_data': user_data}, status=status.HTTP_200_OK)
 
 class ActualizarDatosUsuario(APIView):
+    parser_classes = (MultiPartParser, FormParser)
+
     def put(self, request, *args, **kwargs):
+        print("Datos recibidos en request.data:")
+        print(request.data)
+        
         try:
             usuario = Investigador.objects.get(numerodocumento=request.data.get('numerodocumento'))
         except Investigador.DoesNotExist:
             return Response({'error': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = investigadorSerializer(usuario, data=request.data, partial=True)
 
+        # Obtener la imagen del request.FILES
+        imagen_data = request.FILES.get('imagen')
+        if imagen_data:
+            try:
+                # Generar el nuevo ID de imagen
+                nueva_imagen_id = Imagen.objects.count() + 1
+                
+                # Guardar la nueva imagen con el nuevo ID
+                nueva_imagen = Imagen.objects.create(id=nueva_imagen_id, imagen=imagen_data)
+                
+                # Asignar la nueva imagen al usuario
+                usuario.imagen = nueva_imagen
+                usuario.save()  # Guardar el usuario con la nueva imagen
+
+            except Exception as e:
+                return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Procesar el resto de los datos del Investigador
+        serializer = investigadorSerializer(usuario, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
 
 class CrearProyecto(APIView):
 
@@ -98,35 +127,87 @@ class CrearProyecto(APIView):
             producto =  json.loads(request.data.get('producto'))
             producto_id = producto.get('id')        
 
-        entidadPostulo_data= json.loads(request.data.get('entidadPostulo'))
-        entidadPostulo_nombreIntitucion = entidadPostulo_data.get('nombreInstitucion')
-        entidadPostulo_nombreGrupo = entidadPostulo_data.get('nombreGrupo')
-        entidadPostulo,_=EntidadPostulo.objects.get_or_create(
-            id=EntidadPostulo.objects.count()+1,
-            nombreInstitucion=entidadPostulo_nombreIntitucion,
-            nombreGrupo=entidadPostulo_nombreGrupo
-        )
+        # Entidad Postulo
+        entidadPostulo_data = json.loads(request.data.get('entidadPostulo', '{}'))
+        entidadPostulo = None
+
+        if entidadPostulo_data:
+            entidadPostulo_nombreInstitucion = entidadPostulo_data.get('nombreInstitucion')
+            entidadPostulo_nombreGrupo = entidadPostulo_data.get('nombreGrupo')
+
+            # Verificar si al menos uno de los campos está presente
+            if entidadPostulo_nombreInstitucion or entidadPostulo_nombreGrupo:
+                # Si al menos uno de los campos está presente, crear la instancia de EntidadPostulo
+                entidadPostulo, _ = EntidadPostulo.objects.get_or_create(
+                    id=EntidadPostulo.objects.count() + 1,
+                    defaults={
+                        'nombreInstitucion': entidadPostulo_nombreInstitucion,
+                        'nombreGrupo': entidadPostulo_nombreGrupo
+                    }
+                )
+            else:
+                # Si ninguno de los campos está presente, no se crea la instancia de EntidadPostulo
+                # Puedes manejar esto según tus necesidades
+                print("No se proporcionaron datos suficientes para crear una instancia de EntidadPostulo")
+        else:
+            # Si no hay datos de entidadPostulo, no se crea la instancia de EntidadPostulo
+            print("No hay datos de entidadPostulo en la solicitud")
+
+        # Financiacion
+        financiacion_data = json.loads(request.data.get('financiacion', '{}'))
+        financiacion = None
+
+        if financiacion_data:
+            financiacion_valorPropuestoFin = financiacion_data.get('valorPropuestoFin')
+            financiacion_valorEjecutadoFin = financiacion_data.get('valorEjecutadoFin')
+
+            # Verificar si al menos uno de los campos está presente
+            if financiacion_valorPropuestoFin or financiacion_valorEjecutadoFin:
+                # Si al menos uno de los campos está presente, crear la instancia de Financiacion
+                financiacion, _ = Financiacion.objects.get_or_create(
+                    id=Financiacion.objects.count() + 1,
+                    defaults={
+                        'valorPropuestoFin': financiacion_valorPropuestoFin,
+                        'valorEjecutadoFin': financiacion_valorEjecutadoFin
+                    }
+                )
+            else:
+                # Si ninguno de los campos está presente, no se crea la instancia de Financiacion
+                # Puedes manejar esto según tus necesidades
+                print("No se proporcionaron datos suficientes para crear una instancia de Financiacion")
+        else:
+            # Si no hay datos de financiacion, no se crea la instancia de Financiacion
+            print("No hay datos de financiacion en la solicitud")
+
         
-        financiacion_data = json.loads(request.data.get('financiacion'))
-        financiacion_valorPropuestoFin = financiacion_data.get('valorPropuestoFin')
-        financiacion_valorEjecutadoFin = financiacion_data.get('valorEjecutadoFin')
-        financiacion,_=Financiacion.objects.get_or_create(
-            id=Financiacion.objects.count()+1,
-            valorPropuestoFin=financiacion_valorPropuestoFin,
-            valorEjecutadoFin=financiacion_valorEjecutadoFin
-        )
+        # Transacciones
+        transacciones_data = json.loads(request.data.get('transacciones', '{}'))
+        transacciones = None
 
-        transacciones_data = json.loads(request.data.get('transacciones'))
-        transacciones_fecha=transacciones_data.get('fecha_transacciones')
-        transacciones_acta=transacciones_data.get('acta')
-        transacciones_descripcion=transacciones_data.get('descripcion')
-        transacciones,_=Transacciones.objects.get_or_create(
-            id=Transacciones.objects.count()+1,
-            fecha=transacciones_fecha,
-            acta=transacciones_acta,
-            descripcion=transacciones_descripcion
-        )
+        if transacciones_data:
+            transacciones_fecha = transacciones_data.get('fecha')
+            transacciones_acta = request.FILES.get('acta')
+            transacciones_descripcion = transacciones_data.get('descripcion')
 
+            if transacciones_fecha or transacciones_acta or transacciones_descripcion:
+                transacciones, created = Transacciones.objects.get_or_create(
+                    id=Transacciones.objects.count() + 1,
+                    defaults={
+                        'fecha': transacciones_fecha,
+                        'descripcion': transacciones_descripcion
+                    }
+                )
+                if created and transacciones_acta:
+                    transacciones.acta = transacciones_acta
+                    transacciones.save()
+                elif transacciones_acta:
+                    transacciones.acta = transacciones_acta
+                    transacciones.save()
+
+        else:
+            print("No hay datos de transacciones en la solicitud")
+        
+        
         ubicacionProyecto_data = json.loads(request.data.get('ubicacionProyecto'))
         ubicacionProyecto_instalacion= ubicacionProyecto_data.get('instalacion')
         ubicacionProyecto_municipio=ubicacionProyecto_data.get('municipio')
@@ -142,7 +223,6 @@ class CrearProyecto(APIView):
 
         proyecto_data = {
             'codigo': request.data.get('codigo'),
-            'fecha': make_aware(datetime.strptime(request.data.get('fecha'), "%Y-%m-%d")),
             'titulo': request.data.get('titulo'),
             'investigador': request.data.get('investigador'),
             'area': request.data.get('area'),
@@ -158,7 +238,7 @@ class CrearProyecto(APIView):
             'lineaInvestigacion': request.data.get('lineaInvestigacion'),
             'estadoProceso': 'Espera',
             'unidadAcademica': request.data.get('unidadAcademica'),
-            'producto': Producto.objects.get(pk=producto_id) if producto_id != None else None,
+            #'producto': Producto.objects.get(pk=producto_id) if producto_id != None else None,
         }
 
         proyecto_data['entidadPostulo'] = entidadPostulo
@@ -167,7 +247,10 @@ class CrearProyecto(APIView):
         proyecto_data['ubicacionProyecto']=ubicacionProyecto
 
         proyecto = Proyecto.objects.create(**proyecto_data)  # Crea el objeto Proyecto con los datos relacionados
-
+        
+        
+        productos = Producto.objects.filter(pk=producto_id)
+        proyecto.producto.set(productos)
         # vinculación coinvestigadores
         coinvestigadores_base =request.data.get('coinvestigadores')
         coinvestigadores_proceso = str(coinvestigadores_base).split(',')
@@ -432,7 +515,6 @@ class CrearProyecto(APIView):
             'estadoProceso': 'Espera',
             'porcentajeComSemestral': producto.get('porcentajeComSemestral'),
             'porcentajeRealMensual': producto.get('porcentajeRealMensual'),
-            'fecha':  make_aware(datetime.strptime(producto.get('fecha'), "%Y-%m-%d")),
             'origen': producto.get('origen'),
             'categoriaMinciencias': CategoriaMinciencias.objects.get(pk=1),
             'cuartilEsperado': CuartilEsperado.objects.get(pk=1),
@@ -469,6 +551,7 @@ class CrearNuevoProducto(APIView):
         lista_producto = json.loads(request.data.get('listaProducto'))
         data_general = lista_producto
         capitulo_data = data_general.get('capitulo')
+        proyecto_codigo = request.data.get('codigo')
 
         # Crear o obtener otros objetos relacionados según sea necesario
         # Crear o obtener objetos relacionados según sea necesario
@@ -687,7 +770,6 @@ class CrearNuevoProducto(APIView):
             'estadoProceso': 'Espera',
             'porcentajeComSemestral': request.data.get('porcentajeComSemestral'),
             'porcentajeRealMensual': request.data.get('porcentajeRealMensual'),
-            'fecha':  make_aware(datetime.strptime(request.data.get('fecha'), "%Y-%m-%d")),
             'origen': request.data.get('origen'),
             'categoriaMinciencias': CategoriaMinciencias.objects.get(pk=1),
             'cuartilEsperado': CuartilEsperado.objects.get(pk=1),
@@ -714,13 +796,16 @@ class CrearNuevoProducto(APIView):
         participantes_externos = ParticipantesExternos.objects.filter(numerodocumento__in=participantesExternos_ids)
         producto.participantesExternos.set(participantes_externos)
         
+        
+        proyecto, created = Proyecto.objects.get_or_create(codigo=proyecto_codigo)
+        proyecto.producto.add(producto)
+            
         if soporte:
             producto.Soporte = soporte
             producto.save()
         
         serializer = productoSerializer(producto)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-
 
 class MostrarInvestigadores(APIView):
     def get(self, request, *args, **kwargs):
@@ -733,15 +818,13 @@ class MostrarInvestigadores(APIView):
             
             proyectos_data = [{
                 'codigo': proyecto.codigo,
-                'fecha': proyecto.fecha,
+                'fecha': proyecto.created_at,
                 'titulo': proyecto.titulo,
-                # otros campos del proyecto si los hay
             } for proyecto in proyectos]
 
             productos_data = [{
                 'id': producto.id,
                 'tituloProducto': producto.tituloProducto,
-                # otros campos del producto si los hay
             } for producto in productos]
             
             investigador_data = {
@@ -753,13 +836,72 @@ class MostrarInvestigadores(APIView):
                 'created_at':investigador.created_at,
                 'proyectos': proyectos_data,
                 'productos': productos_data
-                # otros campos del investigador si los hay
             }
             data.append(investigador_data)
 
         return JsonResponse(data, safe=False)
-    
 
+class MostrarPlanTrabajo(APIView):
+    def get(self, request, *args, **kwargs):
+        configuraciones = ConfiguracionPlanTrabajo.objects.all()
+        data = []
+
+        for configuracion in configuraciones:
+            planes_trabajo = configuracion.planTrabajo.all()
+
+            planes_data = []
+            for plan in planes_trabajo:
+                productos_asociados = {}
+
+                if plan.producto:
+                    tipo_producto = plan.producto.tipo_producto()
+
+                    minciencias_data = categoriaMincienciasSerializer(plan.producto.categoriaMinciencias).data if plan.producto.categoriaMinciencias else None
+                    cuartil_data = cuartilEsperadoSerializer(plan.producto.cuartilEsperado).data if plan.producto.cuartilEsperado else None
+
+                    productos_asociados = {
+                        'id': plan.producto.id,
+                        'titulo_producto': plan.producto.tituloProducto,
+                        'minciencias': minciencias_data,
+                        'quartil': cuartil_data,
+                        'estado_inicio_semestre': plan.producto.estadoProceso,
+                        'tipo_producto': tipo_producto
+                    }
+
+                grupoinvestigacion = grupoinvestigacionSerializer(plan.investigador.grupoinvestigacion).data if plan.investigador.grupoinvestigacion else None
+
+                plan_data = {
+                    'id':plan.id,
+                    'horasestricto': plan.horasestricto,
+                    'rol': plan.rol,
+                    'investigador': {
+                        'numerodocumento':plan.investigador.numerodocumento,
+                        'nombre': plan.investigador.nombre,
+                        'apellidos': plan.investigador.apellidos,
+                        'horas_formacion': plan.investigador.horasformacion,
+                        'Grupoinvestigacion': grupoinvestigacion,
+                    },
+                    'proyecto': {
+                        'codigo': plan.proyecto.codigo,
+                        'titulo': plan.proyecto.titulo,
+                        'porcentaje_final_semestre': plan.proyecto.porcentajeEjecucionFinCorte,
+                        'productos_asociados': productos_asociados
+                    }
+                }
+                planes_data.append(plan_data)
+
+            configuracion_data = {
+                'id': configuracion.id,
+                'planTrabajo': planes_data,
+                'fecha': configuracion.fecha,
+                'estado': configuracion.estado,
+                'titulo': configuracion.titulo
+            }
+            data.append(configuracion_data)
+
+        return JsonResponse(data, safe=False)
+    
+       
 class MostrarProductos(APIView):
     def get(self, request, *args, **kwargs):
         productos = Producto.objects.all()
@@ -791,7 +933,7 @@ class MostrarProductos(APIView):
                 'titulo_producto': producto.tituloProducto,
                 'publicacion': producto.publicacion,
                 'estado_producto': producto.estadoProducto,
-                'fecha': producto.fecha,
+                'fecha': producto.created_at,
                 #'soporte': producto.Soporte,
                 'observaciones': producto.observaciones,
                 'porcentanjeAvanFinSemestre': producto.porcentanjeAvanFinSemestre,
@@ -906,3 +1048,139 @@ class MostrarProductos(APIView):
             data.append(producto_data)
 
         return Response(data)
+
+class MostrarPyPdeInvestigador(APIView):
+    def get(self, request, *args, **kwargs):
+        investigadores = Investigador.objects.all()
+        data = []
+
+        for investigador in investigadores:
+            # Obtener proyectos donde el investigador es principal, coinvestigador, o está relacionado con un producto del proyecto
+            proyectos = Proyecto.objects.filter(
+                Q(investigador=investigador.numerodocumento) | 
+                Q(coinvestigador=investigador) |
+                Q(producto__investigador=investigador.numerodocumento) |
+                Q(producto__coinvestigador=investigador.numerodocumento)
+            ).distinct()
+
+            proyectos_con_productos = []
+            for proyecto in proyectos:
+                # Filtrar productos donde el investigador participa como investigador principal o coinvestigador
+                productos_asociados_proyecto = Producto.objects.filter(
+                    Q(proyecto=proyecto) & 
+                    (Q(investigador=investigador.numerodocumento) | Q(coinvestigador=investigador.numerodocumento))
+                ).distinct()
+
+                productos_data = [{
+                    'id': producto.id,
+                    'tituloProducto': producto.tituloProducto,
+                } for producto in productos_asociados_proyecto]
+
+                # Si el proyecto tiene productos y el investigador no participa en ninguno,
+                # igual se debe mostrar el proyecto con el producto asociado
+                if not productos_data:
+                    productos_data = [{
+                        'id': None, 
+                        'tituloProducto': 'Sin productos asociados'
+                    }]
+                elif not productos_asociados_proyecto.exists() and proyecto not in proyectos_con_productos:
+                    proyectos_con_productos.append({
+                        'codigo': proyecto.codigo,
+                        'titulo': proyecto.titulo,
+                        'productos': [{
+                            'id': None,
+                            'tituloProducto': 'Producto asociado al proyecto'
+                        }]
+                    })
+
+                proyectos_con_productos.append({
+                    'codigo': proyecto.codigo,
+                    'titulo': proyecto.titulo,
+                    'productos': productos_data
+                })
+
+            if proyectos_con_productos:
+                investigador_data = {
+                    'nombre': investigador.nombre,
+                    'correo': investigador.correo,
+                    'numerodocumento': investigador.numerodocumento,
+                    'proyectos': proyectos_con_productos,
+                }
+                data.append(investigador_data)
+
+        return JsonResponse(data, safe=False)
+
+class Trazabilidad(APIView):
+    def get(self, request, *args, **kwargs):
+        data = {
+            'proyectos': [],
+            'productos': []
+        }
+
+        # Obtener todos los proyectos
+        proyectos = Proyecto.objects.all()
+
+        for proyecto in proyectos:
+            # Preparar datos del proyecto
+            proyecto_data = {
+                'codigo': proyecto.codigo,
+                'titulo': proyecto.titulo,
+                'notificaciones': []
+            }
+
+            # Obtener todas las notificaciones y filtrar manualmente en Python
+            notificaciones = Notificaciones.objects.all()
+            notificaciones_proyecto = [notificacion for notificacion in notificaciones 
+                                       if proyecto.codigo in notificacion.asunto]
+
+            # Agregar las notificaciones al proyecto
+            if notificaciones_proyecto:
+                proyecto_data['notificaciones'] = [{
+                    'id': notificacion.id,
+                    'asunto': notificacion.asunto,
+                    'remitente': notificacion.remitente,
+                    'destinatario': notificacion.destinatario,
+                    'mensaje': notificacion.mensaje,
+                    'estado': notificacion.estado,
+                    'created_at': notificacion.created_at.isoformat(),
+                    'updated_at': notificacion.updated_at.isoformat(),
+                } for notificacion in notificaciones_proyecto]
+            else:
+                proyecto_data['notificaciones'] = [{'id': None, 'asunto': 'Sin notificaciones'}]
+
+            data['proyectos'].append(proyecto_data)
+
+            # Obtener todos los productos asociados al proyecto
+            productos = Producto.objects.filter(proyecto=proyecto)
+
+            for producto in productos:
+                # Filtrar las notificaciones que están relacionadas con este producto específico
+                notificaciones_producto = [notificacion for notificacion in notificaciones 
+                                           if producto.id in notificacion.asunto]
+
+                if notificaciones_producto:
+                    # Si hay notificaciones, asignarlas al producto
+                    producto_notificaciones = [{
+                        'id': notificacion.id,
+                        'asunto': notificacion.asunto,
+                        'remitente': notificacion.remitente,
+                        'destinatario': notificacion.destinatario,
+                        'mensaje': notificacion.mensaje,
+                        'estado': notificacion.estado,
+                        'created_at': notificacion.created_at.isoformat(),
+                        'updated_at': notificacion.updated_at.isoformat(),
+                    } for notificacion in notificaciones_producto]
+                else:
+                    # Si no hay notificaciones, asignar "Sin notificaciones"
+                    producto_notificaciones = [{'id': None, 'asunto': 'Sin notificaciones'}]
+
+                data['productos'].append({
+                    'id': producto.id,
+                    'tituloProducto': producto.tituloProducto,
+                    'notificaciones': producto_notificaciones,
+                })
+
+        return JsonResponse(data, safe=False)  
+    
+    
+   
