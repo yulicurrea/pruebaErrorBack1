@@ -54,7 +54,11 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+
 
 ROOT_URLCONF = 'app.urls'
 
@@ -135,6 +139,8 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 APPEND_SLASH = False
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # settings.py
 
 CORS_ALLOWED_ORIGINS = [
