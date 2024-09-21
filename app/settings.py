@@ -84,11 +84,11 @@ WSGI_APPLICATION = 'app.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'USER': 'postgres',
-        'PASSWORD':'proyecto',
-        'HOST':'localhost',	
-        'PORT':'5432',
+        'NAME': 'defaultdb',
+        'USER': 'avnadmin',
+        'PASSWORD':'AVNS_PjXnjbm2Mp0DPdIhR1m',
+        'HOST':'pg-1c7f3580-unbosque-fc31.c.aivencloud.com',	
+        'PORT':'12396',
     }
 }
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
