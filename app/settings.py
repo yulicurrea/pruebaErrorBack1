@@ -28,7 +28,7 @@ SECRET_KEY = ')m(3-ur#5ar4fnyfmsis*9$_3s@m+uz(-r$u)6lx6a*^ln_8j)'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-ALLOWED_HOSTS = ['.vercel.app']
+ALLOWED_HOSTS = ['.vercel.app   ']
 
 
 
@@ -86,10 +86,10 @@ WSGI_APPLICATION = 'app.wsgi.application'
 DATABASES = {
      'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'd5b1q5tncqv79q',
-        'USER': 'u4rleu5nub4dv8',
-        'PASSWORD':'p34f30afa59394aa053204dee821843dc477156b3757d2aadf366ac2e34b476cc',
-        'HOST':'ce1r1ldap2qd4b.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com',	
+        'NAME': 'local',
+        'USER': 'default',
+        'PASSWORD':'TGIjm12zMWrc',
+        'HOST':'ep-super-block-a4oj3jwt-pooler.us-east-1.aws.neon.tech',	
         'PORT':'5432',
     }
 }
