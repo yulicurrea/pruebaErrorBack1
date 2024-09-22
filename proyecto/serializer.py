@@ -13,16 +13,24 @@ from .models import (Apropiacion, Articulos, AvanceProyecto, Notificaciones, Cap
 #------------------------ investigador ------------------------
 
 class imagenSerializer(serializers.ModelSerializer):
+    imagen_url = serializers.SerializerMethodField()
     class Meta:
         model = Imagen
         fields = '__all__'
-        
+    def get_imagen_url(self, obj):
+        # Utiliza el método get_imagen_url() del modelo para obtener la URL en formato base64
+        return obj.get_imagen_url()
+    
 class investigadorSerializer(serializers.ModelSerializer):
-    imagen = imagenSerializer(read_only=True)
+    imagen_url = serializers.SerializerMethodField() 
     class Meta:
         model = Investigador
         fields = '__all__'
-
+    def get_imagen_url(self, obj):
+        # Verifica si existe una imagen y retorna la URL generada
+        if obj.imagen:
+            return obj.imagen.get_imagen_url()
+        return None
     
 class ubicacionSerializer(serializers.ModelSerializer):
     class Meta:
