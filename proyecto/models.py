@@ -27,7 +27,7 @@ class Ubicacion(models.Model):
 
 class Imagen(models.Model):
     id = models.CharField(max_length=50, primary_key=True)
-    imagen = models.ImageField(upload_to='uploads/', blank=True)
+    imagen =  models.TextField(blank=True) 
     class Meta:
         db_table = 'proyecto_Imagen'
 
