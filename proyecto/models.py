@@ -32,7 +32,12 @@ class Imagen(models.Model):
     
     def get_imagen_url(self):
         if self.imagen:
-            return f"data:image/png;base64,{self.imagen}"
+            # Asegúrate de que la cadena base64 no incluya el prefijo "data:image/..."
+            if ',' in self.imagen:
+                base64_string = self.imagen.split(',')[1]
+            else:
+                base64_string = self.imagen
+            return f"data:image/png;base64,{base64_string}"
         return None
     
     class Meta:
