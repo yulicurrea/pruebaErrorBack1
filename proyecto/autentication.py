@@ -4,7 +4,7 @@ from django.http import Http404, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import serializers, status
 from rest_framework.exceptions import ValidationError
-from rest_framework.parsers import FileUploadParser,JSONParser
+from rest_framework.parsers import FileUploadParser
 from rest_framework.response import Response
 from rest_framework.views import APIView, exception_handler
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -76,7 +76,7 @@ class CustomAuthToken(APIView):
         return Response({'token': access_token, 'user_data': user_data}, status=status.HTTP_200_OK)
 
 class ActualizarDatosUsuario(APIView):
-    parser_classes = (MultiPartParser, FormParser, JSONParser)
+    parser_classes = (MultiPartParser, FormParser)
 
     def put(self, request, *args, **kwargs):
         print("Datos recibidos en request.data:")
@@ -90,23 +90,21 @@ class ActualizarDatosUsuario(APIView):
 
         # Obtener la imagen del request.FILES
         imagen_data = request.FILES.get('imagen')
-    
+
         if imagen_data:
-            # Eliminar el prefijo de la cadena base64 si está presente
-            if 'base64,' in imagen_data:
-                imagen_data = imagen_data.split('base64,')[1]
-            
             if usuario.imagen:
-                # Si ya existe una imagen, la actualizamos
-                usuario.imagen.imagen = imagen_data
+                # Actualizar la imagen existente
+                usuario.imagen.imagen = imagen_data.read().decode('base64')  # Guarda el archivo como base64
                 usuario.imagen.save()
             else:
-                # Si no existe, creamos una nueva imagen
-                nueva_imagen = Imagen.objects.create(imagen=imagen_data)
+                # Crear una nueva imagen
+                nueva_imagen = Imagen.objects.create(imagen=imagen_data.read().decode('base64'))
                 usuario.imagen = nueva_imagen
 
             usuario.save()
-            
+    
+
+
         # Procesar el resto de los datos del Investigador
         serializer = investigadorSerializer(usuario, data=request.data, partial=True)
         if serializer.is_valid():
