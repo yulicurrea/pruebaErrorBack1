@@ -90,16 +90,24 @@ class ActualizarDatosUsuario(APIView):
 
         # Obtener la imagen del request.FILES
         imagen_data = request.FILES.get('imagen')
-        if imagen_data:
+        imagen_id = request.data.get('imagen_id')
+
+        if imagen_data and imagen_id:
             try:
                 # Generar el nuevo ID de imagen
-                nueva_imagen_id = Imagen.objects.count() + 1
+                
                 
                 # Leer la imagen como bytes
                 imagen_bytes = imagen_data.read()
+
+                nueva_imagen, created = Imagen.objects.update_or_create(
+                    id=imagen_id, 
+                    defaults={'imagen': imagen_bytes}
+                )
+                
                 
                 # Guardar la nueva imagen con el nuevo ID
-                nueva_imagen = Imagen.objects.create(id=nueva_imagen_id, imagen=imagen_bytes)
+                
                 
                 # Asignar la nueva imagen al usuario
                 usuario.imagen = nueva_imagen
