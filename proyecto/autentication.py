@@ -92,26 +92,15 @@ class ActualizarDatosUsuario(APIView):
         imagen_data = request.FILES.get('imagen')
         imagen_id = request.data.get('imagen_id')
 
-        if imagen_data and imagen_id:
+        imagen_data = request.FILES.get('imagen')
+        if imagen_data:
             try:
-                # Generar el nuevo ID de imagen
-                
-                
-                # Leer la imagen como bytes
+                nueva_imagen_id = str(Imagen.objects.count() + 1)  # Asegúrate de usar str para el ID
                 imagen_bytes = imagen_data.read()
-
-                nueva_imagen, created = Imagen.objects.update_or_create(
-                    id=imagen_id, 
-                    defaults={'imagen': imagen_bytes}
-                )
-                
-                
-                # Guardar la nueva imagen con el nuevo ID
-                
-                
-                # Asignar la nueva imagen al usuario
+                nueva_imagen = Imagen.objects.create(id=nueva_imagen_id, imagen=imagen_bytes)
                 usuario.imagen = nueva_imagen
-                usuario.save()  # Guardar el usuario con la nueva imagen
+                usuario.save()
+
 
             except Exception as e:
                 return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
