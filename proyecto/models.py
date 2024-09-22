@@ -28,11 +28,12 @@ class Ubicacion(models.Model):
 
 class Imagen(models.Model):
     id = models.CharField(max_length=50, primary_key=True)
-    imagen =  models.TextField(blank=True) 
+    imagen = models.TextField(blank=True, null=True)  # Almacenamos la imagen como base64
     
     def get_imagen_url(self):
-        # Devuelve un URL base64 para la imagen almacenada
-        return f"data:image/png;base64,{base64.b64encode(self.imagen).decode()}"
+        if self.imagen:
+            return f"data:image/png;base64,{self.imagen}"
+        return None
     
     class Meta:
         db_table = 'proyecto_Imagen'

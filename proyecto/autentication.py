@@ -4,7 +4,7 @@ from django.http import Http404, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import serializers, status
 from rest_framework.exceptions import ValidationError
-from rest_framework.parsers import FileUploadParser
+from rest_framework.parsers import FileUploadParser,JSONParser
 from rest_framework.response import Response
 from rest_framework.views import APIView, exception_handler
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -76,7 +76,7 @@ class CustomAuthToken(APIView):
         return Response({'token': access_token, 'user_data': user_data}, status=status.HTTP_200_OK)
 
 class ActualizarDatosUsuario(APIView):
-    parser_classes = (MultiPartParser, FormParser)
+    parser_classes = (MultiPartParser, FormParser, JSONParser)
 
     def put(self, request, *args, **kwargs):
         print("Datos recibidos en request.data:")
@@ -90,21 +90,23 @@ class ActualizarDatosUsuario(APIView):
 
         # Obtener la imagen del request.FILES
         imagen_data = request.FILES.get('imagen')
-        imagen_id = request.data.get('imagen_id')
-
-        imagen_data = request.FILES.get('imagen')
+    
         if imagen_data:
-            try:
-                nueva_imagen_id = str(Imagen.objects.count() + 1)  # Asegúrate de usar str para el ID
-                imagen_bytes = imagen_data.read()
-                nueva_imagen = Imagen.objects.create(id=nueva_imagen_id, imagen=imagen_bytes)
+            # Eliminar el prefijo de la cadena base64 si está presente
+            if 'base64,' in imagen_data:
+                imagen_data = imagen_data.split('base64,')[1]
+            
+            if usuario.imagen:
+                # Si ya existe una imagen, la actualizamos
+                usuario.imagen.imagen = imagen_data
+                usuario.imagen.save()
+            else:
+                # Si no existe, creamos una nueva imagen
+                nueva_imagen = Imagen.objects.create(imagen=imagen_data)
                 usuario.imagen = nueva_imagen
-                usuario.save()
 
-
-            except Exception as e:
-                return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
+            usuario.save()
+            
         # Procesar el resto de los datos del Investigador
         serializer = investigadorSerializer(usuario, data=request.data, partial=True)
         if serializer.is_valid():
