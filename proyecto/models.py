@@ -32,13 +32,23 @@ class Imagen(models.Model):
     
     def get_imagen_url(self):
         if self.imagen:
-            # Asegúrate de que la cadena base64 no incluya el prefijo "data:image/..."
-            if ',' in self.imagen:
+            # Asegúrate de que el contenido sea base64 y no un nombre de archivo
+            if 'base64,' in self.imagen:
                 base64_string = self.imagen.split(',')[1]
             else:
                 base64_string = self.imagen
-            return f"data:image/png;base64,{base64_string}"
+
+            # Asegura que base64_string es realmente una cadena base64
+            try:
+                # Decodifica para verificar si es válido
+                import base64
+                base64.b64decode(base64_string, validate=True)
+                return f"data:image/png;base64,{base64_string}"
+            except (ValueError, base64.binascii.Error):
+                print("Error: Cadena base64 inválida")
+                return None
         return None
+
     
     class Meta:
         db_table = 'proyecto_Imagen'

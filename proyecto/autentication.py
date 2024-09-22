@@ -90,19 +90,21 @@ class ActualizarDatosUsuario(APIView):
 
         # Obtener la imagen del request.FILES
         imagen_data = request.FILES.get('imagen')
-
+        
         if imagen_data:
+            # Leer la imagen y codificarla en base64
+            imagen_base64 = base64.b64encode(imagen_data.read()).decode('utf-8')
+
             if usuario.imagen:
                 # Actualizar la imagen existente
-                usuario.imagen.imagen = imagen_data.read().decode('base64')  # Guarda el archivo como base64
+                usuario.imagen.imagen = f"data:image/png;base64,{imagen_base64}"
                 usuario.imagen.save()
             else:
                 # Crear una nueva imagen
-                nueva_imagen = Imagen.objects.create(imagen=imagen_data.read().decode('base64'))
+                nueva_imagen = Imagen.objects.create(imagen=f"data:image/png;base64,{imagen_base64}")
                 usuario.imagen = nueva_imagen
 
             usuario.save()
-    
 
 
         # Procesar el resto de los datos del Investigador
