@@ -1,3 +1,4 @@
+import uuid
 from django.contrib.auth.hashers import check_password
 from django.db import transaction
 from django.http import Http404, JsonResponse
@@ -101,7 +102,8 @@ class ActualizarDatosUsuario(APIView):
                 usuario.imagen.save()
             else:
                 # Crear una nueva imagen
-                nueva_imagen = Imagen.objects.create(imagen=f"data:image/png;base64,{imagen_base64}")
+                nuevo_id = str(uuid.uuid4())
+                nueva_imagen = Imagen.objects.create(id=nuevo_id,imagen=f"data:image/png;base64,{imagen_base64}")
                 usuario.imagen = nueva_imagen
 
             usuario.save()
