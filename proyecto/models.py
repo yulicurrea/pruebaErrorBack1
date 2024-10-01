@@ -563,7 +563,7 @@ class ConfiguracionEntregableProyecto(models.Model):
 class AvanceEntregableProyecto(models.Model):
     id = models.AutoField(primary_key=True)
     url = models.CharField(max_length=250,blank=True)
-    soporte = models.FileField(upload_to ='uploadsAvanceProyecto/',max_length=1000, blank=True)
+    soporte = models.TextField(blank=True) 
     fecha = models.DateField()
     estado = models.BooleanField(default=False)
     configuracionEntregableProyecto_id = models.ForeignKey(ConfiguracionEntregableProyecto,null=False,blank=False,on_delete=models.CASCADE)

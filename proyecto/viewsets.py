@@ -13,7 +13,7 @@ from rest_framework import generics, status, serializers
 from rest_framework.response import Response
 from rest_framework.parsers import FileUploadParser
 
-
+import base64
 from django.core.cache import cache
 from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_encode
@@ -395,10 +395,12 @@ class avanceEntregableProyectoList(generics.ListCreateAPIView):
             'estado': request.data.get('estado'),
             'configuracionEntregableProyecto_id': ConfiguracionEntregableProyecto.objects.get(pk=int(request.data.get('configuracionEntregableProyecto_id_id'))),
         }
-        avance = AvanceEntregableProyecto.objects.create(**admin_data)
+        avance = AvanceEntregableProyecto(**admin_data)
         if soporte:
-            avance.soporte = soporte
-            avance.save()
+            # Leer el archivo y codificarlo en base64
+            soporte_base64 = base64.b64encode(soporte.read()).decode('utf-8')
+            # Guardar el soporte en formato base64
+            avance.soporte = f"data:{soporte.content_type};base64,{soporte_base64}"
 
         serializer = avanceEntregableProyectoSerializer(avance) 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
