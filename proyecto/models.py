@@ -354,7 +354,7 @@ class Producto(models.Model):
     porcentajeRealMensual = models.IntegerField()
     origen = models.CharField(max_length=5000)
     observacion = models.CharField(max_length=5000,default='')
-    Soporte = models.FileField(upload_to ='uploadsProducto/',max_length=1000, blank=True)
+    Soporte = models.TextField(blank=True)
     estadoProceso = [
         ("Aprobado","Aprobado"),
         ("Rechazado","Rechazado"),
@@ -497,7 +497,7 @@ class Proyecto(models.Model):
     porcentajeEjecucionFinCorte = models.IntegerField()
     porcentajeAvance = models.IntegerField()
     observacion = models.CharField(max_length=5000,default='')
-    Soporte = models.FileField(upload_to ='uploadsProducto/',max_length=1000, blank=True)
+    Soporte = models.TextField(blank=True)
     transacciones = models.ForeignKey(Transacciones,null=True,blank=True,on_delete=models.CASCADE)
     origen = [
         ("nacional", "nacional"),

@@ -280,7 +280,9 @@ class CrearProyecto(APIView):
         proyecto.participantesExternos.set(participantes_externos)
 
         if soporte:
-            proyecto.Soporte = soporte
+
+            soporte_base64 = base64.b64encode(soporte.read()).decode('utf-8')
+            proyecto.Soporte = f"data:{soporte.content_type};base64,{soporte_base64}"
             proyecto.save()
 
         serializer = proyectoSerializer(proyecto)  # Serializa el proyecto creado
@@ -540,7 +542,9 @@ class CrearProyecto(APIView):
         producto.participantesExternos.set(participantes_externos)
         
         if soporte:
-            producto.Soporte = soporte
+
+            soporte_base64 = base64.b64encode(soporte.read()).decode('utf-8')
+            producto.Soporte = f"data:{soporte.content_type};base64,{soporte_base64}"
             producto.save()
         
         serializer = productoSerializer(producto)
@@ -805,7 +809,9 @@ class CrearNuevoProducto(APIView):
         proyecto.producto.add(producto)
             
         if soporte:
-            producto.Soporte = soporte
+            
+            soporte_base64 = base64.b64encode(soporte.read()).decode('utf-8')
+            producto.Soporte = f"data:{soporte.content_type};base64,{soporte_base64}"
             producto.save()
         
         serializer = productoSerializer(producto)
