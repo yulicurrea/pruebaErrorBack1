@@ -280,10 +280,14 @@ class CrearProyecto(APIView):
         proyecto.participantesExternos.set(participantes_externos)
 
         if soporte:
+            if isinstance(soporte, str):
+                return Response({"error": "Se ha recibido una cadena en lugar de un archivo."}, status=status.HTTP_400_BAD_REQUEST)
 
             soporte_base64 = base64.b64encode(soporte.read()).decode('utf-8')
             proyecto.Soporte = f"data:{soporte.content_type};base64,{soporte_base64}"
             proyecto.save()
+        else:
+            return Response({"error": "No se ha enviado ningún archivo soporte."}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = proyectoSerializer(proyecto)  # Serializa el proyecto creado
 
