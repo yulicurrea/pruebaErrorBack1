@@ -376,7 +376,10 @@ class avanceEntregableProductoList(generics.ListCreateAPIView):
         }
         avance = AvanceEntregableProducto.objects.create(**admin_data)
         if soporte:
-            avance.soporte = soporte
+            # Leer el archivo y codificarlo en base64
+            soporte_base64 = base64.b64encode(soporte.read()).decode('utf-8')
+            # Guardar el soporte en formato base64
+            avance.soporte = f"data:{soporte.content_type};base64,{soporte_base64}"
             avance.save()
 
         serializer = avanceEntregableProductoSerializer(avance) 
@@ -401,7 +404,7 @@ class avanceEntregableProyectoList(generics.ListCreateAPIView):
             soporte_base64 = base64.b64encode(soporte.read()).decode('utf-8')
             # Guardar el soporte en formato base64
             avance.soporte = f"data:{soporte.content_type};base64,{soporte_base64}"
-        avance.save()
+            avance.save()
 
         serializer = avanceEntregableProyectoSerializer(avance) 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
