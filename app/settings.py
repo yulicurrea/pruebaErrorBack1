@@ -91,7 +91,20 @@ DATABASES = {
         'PASSWORD':'AVNS_PjXnjbm2Mp0DPdIhR1m',
         'HOST':'pg-1c7f3580-unbosque-fc31.c.aivencloud.com',	
         'PORT':'12396',
-        'CONN_MAX_AGE': 200,
+        'CONN_MAX_AGE': 0,  # Necesario para django-db-geventpool
+        'OPTIONS': {
+            'MAX_CONNS': 20,  # Ajuste este número según sus necesidades
+            'connect_timeout': 10,
+            'statement_timeout': 30000,  # 30 segundos en milisegundos
+            'sslmode': 'require',
+            'application_name': 'your_app_name',  # Reemplace con el nombre de su aplicación
+        },
+        'POOL_OPTIONS': {
+            'pool_size': 5,
+            'max_overflow': 10,
+            'recycle': 300,  # 5 minutos
+        },
+        'ATOMIC_REQUESTS': True,
     }
 }
 
