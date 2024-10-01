@@ -401,6 +401,7 @@ class avanceEntregableProyectoList(generics.ListCreateAPIView):
             soporte_base64 = base64.b64encode(soporte.read()).decode('utf-8')
             # Guardar el soporte en formato base64
             avance.soporte = f"data:{soporte.content_type};base64,{soporte_base64}"
+        avance.save()
 
         serializer = avanceEntregableProyectoSerializer(avance) 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
