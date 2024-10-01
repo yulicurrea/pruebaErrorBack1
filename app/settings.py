@@ -91,7 +91,7 @@ DATABASES = {
         'PASSWORD':'AVNS_PjXnjbm2Mp0DPdIhR1m',
         'HOST':'pg-1c7f3580-unbosque-fc31.c.aivencloud.com',	
         'PORT':'12396',
-        'CONN_MAX_AGE': 1000000,
+        'CONN_MAX_AGE': 1000000000000000000,
     }
 }
 
