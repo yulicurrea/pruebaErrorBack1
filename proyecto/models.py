@@ -354,7 +354,7 @@ class Producto(models.Model):
     porcentajeRealMensual = models.IntegerField()
     origen = models.CharField(max_length=5000)
     observacion = models.CharField(max_length=5000,default='')
-    Soporte = models.TextField(blank=True)
+    Soporte = models.TextField(null=True,blank=True)
     estadoProceso = [
         ("Aprobado","Aprobado"),
         ("Rechazado","Rechazado"),

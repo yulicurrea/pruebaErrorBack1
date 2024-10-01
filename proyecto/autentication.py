@@ -281,17 +281,9 @@ class CrearProyecto(APIView):
 
         if soporte:
 
-            if hasattr(soporte, 'read'):
-                soporte_base64 = base64.b64encode(soporte.read()).decode('utf-8')
-                proyecto.Soporte = f"data:{soporte.content_type};base64,{soporte_base64}"
-                proyecto.save()
-            else:
-                # Manejo en caso de que soporte sea un string
-                soporte_base64 = base64.b64encode(soporte.encode()).decode('utf-8')
-                proyecto.Soporte = f"data:text/plain;base64,{soporte_base64}"  # Ajusta el tipo MIME si es necesario
-        else:
-            return Response({"error": "No se ha enviado ningún archivo soporte."}, status=status.HTTP_400_BAD_REQUEST)
-
+            soporte_base64 = base64.b64encode(soporte.read()).decode('utf-8')
+            proyecto.Soporte = f"data:{soporte.content_type};base64,{soporte_base64}"
+            proyecto.save()
 
         serializer = proyectoSerializer(proyecto)  # Serializa el proyecto creado
 
@@ -556,8 +548,10 @@ class CrearProyecto(APIView):
             producto.save()
         
         serializer = productoSerializer(producto)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
         
-        return True
 
 class CrearNuevoProducto(APIView):
     parser_class = (FileUploadParser,)
