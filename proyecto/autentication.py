@@ -283,19 +283,24 @@ class CrearProyecto(APIView):
         participantes_externos = ParticipantesExternos.objects.filter(numerodocumento__in=participantesExternos_ids)
         proyecto.participantesExternos.set(participantes_externos)
 
+        
         if soporte:
-            clean_soporte_file(soporte)  # Validar el tamaño
+    # Límite de tamaño reducido a 1 MB
+            limit = 1 * 1024 * 1024  # 1 MB
+            if soporte.size > limit:
+                return Response({"error": "El archivo es demasiado grande"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Guarda solo si el archivo es suficientemente pequeño
-            if soporte.size <= 1 * 1024 * 1024:  # 1 MB
-               soporte_base64 = base64.b64encode(soporte.read()).decode('utf-8')
-               proyecto.Soporte = f"data:{soporte.content_type};base64,{soporte_base64}"
+            # Leer el archivo y almacenar en formato base64 (recortando aún más si es necesario)
+            soporte_base64 = base64.b64encode(soporte.read()).decode('utf-8')
 
-               proyecto.save()
-               serializer = proyectoSerializer(proyecto)
-    
-    # Devuelve solo la información relevante
-               return Response(serializer.data, status=status.HTTP_201_CREATED)
+            # Reducir el tamaño máximo almacenado
+            max_length = 3000  # Ajusta para que no sobrepase el límite
+            proyecto.Soporte = soporte_base64[:max_length]  # Solo guarda una parte
+
+            proyecto.save()
+
+            serializer = proyectoSerializer(proyecto)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
     def crearProductoPorProyecto(self, request):        
