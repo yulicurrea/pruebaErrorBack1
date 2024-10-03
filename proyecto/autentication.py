@@ -117,6 +117,10 @@ class ActualizarDatosUsuario(APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+def clean_soporte_file(file):
+    if file.size > 1 * 1024 * 1024:  # 1 MB
+        raise ValidationError("El archivo es demasiado grande, el tamaño máximo permitido es 1 MB.")
+
 class CrearProyecto(APIView):
 
     parser_class = (FileUploadParser,)
@@ -280,21 +284,18 @@ class CrearProyecto(APIView):
         proyecto.participantesExternos.set(participantes_externos)
 
         if soporte:
-            # Límite de tamaño (por ejemplo, 2 MB)
-            limit = 2 * 1024 * 1024  # 2 MB
-            if soporte.size > limit:
-                return Response({"error": "El archivo es demasiado grande"}, status=status.HTTP_400_BAD_REQUEST)
-            
-            # Leer el archivo y almacenar en formato base64 (recortando si es necesario)
-            soporte_base64 = base64.b64encode(soporte.read()).decode('utf-8')
-            # Si decides truncar el contenido
-            max_length = 5000  # Ajusta según lo que consideres necesario
-            proyecto.Soporte = soporte_base64[:max_length]  # Solo guarda una parte
-            
-            proyecto.save()
+            clean_soporte_file(soporte)  # Validar el tamaño
 
-        serializer = proyectoSerializer(proyecto)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        # Guarda solo si el archivo es suficientemente pequeño
+            if soporte.size <= 1 * 1024 * 1024:  # 1 MB
+               soporte_base64 = base64.b64encode(soporte.read()).decode('utf-8')
+               proyecto.Soporte = f"data:{soporte.content_type};base64,{soporte_base64}"
+
+               proyecto.save()
+               serializer = proyectoSerializer(proyecto)
+    
+    # Devuelve solo la información relevante
+               return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
     def crearProductoPorProyecto(self, request):        
