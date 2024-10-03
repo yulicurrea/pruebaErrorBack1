@@ -123,8 +123,7 @@ class CrearProyecto(APIView):
     def post(self, request, *args, **kwargs):
         soporte = request.FILES.get('soporte')
         producto_data = request.data.get('producto')
-        if isinstance(producto_data, str):  
-            product_data_sale = json.loads(producto_data)
+        product_data_sale = json.loads(producto_data)
 
         producto_id = None
         if product_data_sale.get('id') != '':
@@ -281,17 +280,13 @@ class CrearProyecto(APIView):
         proyecto.participantesExternos.set(participantes_externos)
 
         if soporte:
-            # Verificar el tamaño del archivo
-            if soporte.size > 100000:  # Define MAX_FILE_SIZE según lo que consideres razonable
-                return Response({'error': 'File too large'}, status=status.HTTP_400_BAD_REQUEST)
-
-            # Almacenar solo la referencia o URL en lugar de la carga base64
-            proyecto.Soporte = soporte # O cualquier otra referencia que desees almacenar
+            proyecto.Soporte = soporte
             proyecto.save()
 
-        serializer = proyectoSerializer(proyecto)
-        return Response({'id': proyecto.codigo, 'mensaje': 'Proyecto creado con éxito'}, status=status.HTTP_201_CREATED)
+        serializer = proyectoSerializer(proyecto)  # Serializa el proyecto creado
 
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
     def crearProductoPorProyecto(self, request):        
         soporte = request.FILES.get('soporteProducto')
         producto =  json.loads(request.data.get('producto'))
@@ -544,18 +539,15 @@ class CrearProyecto(APIView):
         participantes_externos = ParticipantesExternos.objects.filter(numerodocumento__in=participantesExternos_ids)
         producto.participantesExternos.set(participantes_externos)
         
+        
         if soporte:
-        # Verificar el tamaño del archivo
-            if soporte.size > 100000:
-                return {'error': 'File too large'}  # Manejar este error según tu flujo
-
-        # Almacenar solo la referencia o URL en lugar de la carga base64
-            producto.Soporte = soporte  # O cualquier otra referencia que desees almacenar
+            producto.Soporte = soporte
             producto.save()
-
+        
         serializer = productoSerializer(producto)
-        return True  # O el retorno que necesites
-    
+        
+        return True
+
 class CrearNuevoProducto(APIView):
     parser_class = (FileUploadParser,)
 
@@ -814,16 +806,11 @@ class CrearNuevoProducto(APIView):
         proyecto.producto.add(producto)
             
         if soporte:
-            # Verificar el tamaño del archivo
-            if soporte.size > 100000:
-                return Response({'error': 'File too large'}, status=status.HTTP_400_BAD_REQUEST)
-
-            # Almacenar solo la referencia o URL en lugar de la carga base64
-            producto.Soporte = soporte  # O cualquier otra referencia que desees almacenar
+            producto.Soporte = soporte
             producto.save()
-
+        
         serializer = productoSerializer(producto)
-        return Response({'id': producto.id, 'mensaje': 'Producto creado con éxito'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class MostrarInvestigadores(APIView):
     def get(self, request, *args, **kwargs):
