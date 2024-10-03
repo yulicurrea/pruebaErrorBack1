@@ -298,7 +298,7 @@ class CrearProyecto(APIView):
 
 
     def crearProductoPorProyecto(self, request):        
-        soporte = request.data.get('soporteProducto')
+        soporte = request.File.get('soporteProducto')
         producto =  json.loads(request.data.get('producto'))
         list_producto = producto.get('listaProducto')
 
