@@ -90,13 +90,7 @@ DATABASES = {
         'USER': 'avnadmin',
         'PASSWORD':'AVNS_PjXnjbm2Mp0DPdIhR1m',
         'HOST':'pg-1c7f3580-unbosque-fc31.c.aivencloud.com',	
-        'PORT':'12396',
-        'CONN_MAX_AGE': 1200000,  # Conexiones persistentes por 10 minutos
-        'OPTIONS': {
-            'pool_size': 10,  # Define el tamaño del pool
-            'max_overflow': 5,  # Número de conexiones adicionales permitidas
-        },
-        
+        'PORT':'12396'
     }
 }
 
