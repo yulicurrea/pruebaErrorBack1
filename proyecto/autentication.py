@@ -123,7 +123,8 @@ class CrearProyecto(APIView):
     def post(self, request, *args, **kwargs):
         soporte = request.FILES.get('soporte')
         producto_data = request.data.get('producto')
-        product_data_sale = json.loads(producto_data)
+        if isinstance(producto_data, str):  
+            product_data_sale = json.loads(producto_data)
 
         producto_id = None
         if product_data_sale.get('id') != '':
@@ -290,7 +291,7 @@ class CrearProyecto(APIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def crearProductoPorProyecto(self, request):        
-        soporte = request.data.get('soporteProducto')
+        soporte = request.FILES.get('soporteProducto')
         producto =  json.loads(request.data.get('producto'))
         list_producto = producto.get('listaProducto')
 
@@ -548,10 +549,8 @@ class CrearProyecto(APIView):
             producto.save()
         
         serializer = productoSerializer(producto)
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
         
+        return True
 
 class CrearNuevoProducto(APIView):
     parser_class = (FileUploadParser,)
