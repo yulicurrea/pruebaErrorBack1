@@ -561,15 +561,17 @@ class CrearProyecto(APIView):
             producto.Soporte = f"data:{soporte.content_type};base64,{soporte_base64}"
             producto.save()
         
-        serializer = productoSerializer(producto)
+            serializer = productoSerializer(producto)
         
-        return True
+            return True
 
 class CrearNuevoProducto(APIView):
     parser_class = (FileUploadParser,)
 
     def post(self, request, *args, **kwargs):
         soporte = request.FILES.get('Soporte')
+        if not soporte:
+            return Response({"error": "No se ha subido ningún archivo de soporte."}, status=status.HTTP_400_BAD_REQUEST)
         lista_producto = json.loads(request.data.get('listaProducto'))
         data_general = lista_producto
         capitulo_data = data_general.get('capitulo')
@@ -822,12 +824,26 @@ class CrearNuevoProducto(APIView):
         proyecto, created = Proyecto.objects.get_or_create(codigo=proyecto_codigo)
         proyecto.producto.add(producto)
             
+              # Verificar si se recibió el archivo de soporte
         if soporte:
+            # Asegurarse de que el archivo no excede el tamaño permitido
+            MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB como ejemplo, ajustar según necesidad
+            if soporte.size > MAX_FILE_SIZE:
+                return Response({"error": "El archivo es demasiado grande."}, status=status.HTTP_400_BAD_REQUEST)
             
-            soporte_base64 = base64.b64encode(soporte.read()).decode('utf-8')
-            producto.Soporte = f"data:{soporte.content_type};base64,{soporte_base64}"
-            producto.save()
-        
+            # Verificar que el archivo es legible
+            try:
+                soporte.seek(0)  # Asegurarse de que el puntero del archivo está en el inicio
+                soporte_base64 = base64.b64encode(soporte.read()).decode('utf-8')
+                producto.Soporte = f"data:{soporte.content_type};base64,{soporte_base64}"
+                producto.save()
+            except Exception as e:
+                return Response({"error": f"Error al procesar el archivo de soporte: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        else:
+            return Response({"error": "No se ha subido ningún archivo de soporte."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Serializar el producto para la respuesta
         serializer = productoSerializer(producto)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
