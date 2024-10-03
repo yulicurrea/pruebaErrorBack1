@@ -354,7 +354,7 @@ class Producto(models.Model):
     porcentajeRealMensual = models.IntegerField()
     origen = models.CharField(max_length=5000)
     observacion = models.CharField(max_length=5000,default='')
-    Soporte = models.TextField(null=True,blank=True)
+    Soporte = models.TextField(null=True,blank=True,max_length=7000000)
     estadoProceso = [
         ("Aprobado","Aprobado"),
         ("Rechazado","Rechazado"),
@@ -425,7 +425,7 @@ class ConfiguracionEntregableProducto(models.Model):
 class AvanceEntregableProducto(models.Model):
     id = models.AutoField(primary_key=True)
     url = models.CharField(max_length=250,blank=True)
-    soporte = models.TextField(blank=True) 
+    soporte = models.TextField(blank=True, max_length=7000000) 
     fecha = models.DateField()
     estado = models.BooleanField(default=True)
     configuracionEntregableProducto_id = models.ForeignKey(ConfiguracionEntregableProducto,null=False,blank=False,on_delete=models.CASCADE)
@@ -497,7 +497,7 @@ class Proyecto(models.Model):
     porcentajeEjecucionFinCorte = models.IntegerField()
     porcentajeAvance = models.IntegerField()
     observacion = models.CharField(max_length=5000,default='')
-    Soporte = models.TextField(blank=True)
+    Soporte = models.TextField(blank=True, max_length=7000000)
     transacciones = models.ForeignKey(Transacciones,null=True,blank=True,on_delete=models.CASCADE)
     origen = [
         ("nacional", "nacional"),
@@ -563,7 +563,7 @@ class ConfiguracionEntregableProyecto(models.Model):
 class AvanceEntregableProyecto(models.Model):
     id = models.AutoField(primary_key=True)
     url = models.CharField(max_length=250,blank=True)
-    soporte = models.TextField(blank=True) 
+    soporte = models.TextField(blank=True,max_length=7000000) 
     fecha = models.DateField()
     estado = models.BooleanField(default=False)
     configuracionEntregableProyecto_id = models.ForeignKey(ConfiguracionEntregableProyecto,null=False,blank=False,on_delete=models.CASCADE)
