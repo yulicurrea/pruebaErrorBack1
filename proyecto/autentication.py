@@ -283,9 +283,7 @@ class CrearProyecto(APIView):
         participantes_externos = ParticipantesExternos.objects.filter(numerodocumento__in=participantesExternos_ids)
         proyecto.participantesExternos.set(participantes_externos)
 
-        
         if soporte:
-
             soporte_base64 = base64.b64encode(soporte.read()).decode('utf-8')
             proyecto.Soporte = f"data:{soporte.content_type};base64,{soporte_base64}"
             proyecto.save()
@@ -295,7 +293,7 @@ class CrearProyecto(APIView):
 
 
     def crearProductoPorProyecto(self, request):        
-        soporte = request.data.get('soporteProducto')
+        soporte = request.FILES.get('soporteProducto')
         producto =  json.loads(request.data.get('producto'))
         list_producto = producto.get('listaProducto')
 
@@ -817,23 +815,10 @@ class CrearNuevoProducto(APIView):
             
               # Verificar si se recibió el archivo de soporte
         if soporte:
-            # Asegurarse de que el archivo no excede el tamaño permitido
-            MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB como ejemplo, ajustar según necesidad
-            if soporte.size > MAX_FILE_SIZE:
-                return Response({"error": "El archivo es demasiado grande."}, status=status.HTTP_400_BAD_REQUEST)
             
-            # Verificar que el archivo es legible
-            try:
-                soporte.seek(0)  # Asegurarse de que el puntero del archivo está en el inicio
                 soporte_base64 = base64.b64encode(soporte.read()).decode('utf-8')
                 producto.Soporte = f"data:{soporte.content_type};base64,{soporte_base64}"
                 producto.save()
-            except Exception as e:
-                return Response({"error": f"Error al procesar el archivo de soporte: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        else:
-            return Response({"error": "No se ha subido ningún archivo de soporte."}, status=status.HTTP_400_BAD_REQUEST)
-
         # Serializar el producto para la respuesta
         serializer = productoSerializer(producto)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
