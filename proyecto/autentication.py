@@ -285,18 +285,9 @@ class CrearProyecto(APIView):
 
         
         if soporte:
-    # Límite de tamaño reducido a 1 MB
-            limit = 1 * 1024 * 1024  # 1 MB
-            if soporte.size > limit:
-                return Response({"error": "El archivo es demasiado grande"}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Leer el archivo y almacenar en formato base64 (recortando aún más si es necesario)
             soporte_base64 = base64.b64encode(soporte.read()).decode('utf-8')
-
-            # Reducir el tamaño máximo almacenado
-            max_length = 3000  # Ajusta para que no sobrepase el límite
-            proyecto.Soporte = soporte_base64[:max_length]  # Solo guarda una parte
-
+            proyecto.Soporte = f"data:{soporte.content_type};base64,{soporte_base64}"
             proyecto.save()
 
             serializer = proyectoSerializer(proyecto)
