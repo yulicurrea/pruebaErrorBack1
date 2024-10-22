@@ -144,7 +144,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # settings.py
 
 CORS_ALLOWED_ORIGINS = [
-    'https://prueba-error-back1-m9y5.vercel.app/',  # Agrega aquí el origen de tu frontend Angular
+    'https://osiris-bioaxis.vercel.app',  # Agrega aquí el origen de tu frontend Angular
     # Otros orígenes permitidos si es necesario...
 ]
 
@@ -157,7 +157,7 @@ CORS_ORIGIN_ALLOW_ALL: True
 
 CORS_ORIGIN_WHITELIST = [
     'http://localhost:4200',
-    'https://prueba-error-back1-m9y5.vercel.app/'
+    'https://osiris-bioaxis.vercel.app'
 ]
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media').replace('\\', '/')
