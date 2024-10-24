@@ -295,8 +295,8 @@ class CrearNuevoProducto(APIView):
     parser_class = (FileUploadParser,)
 
     def post(self, request, *args, **kwargs):
-        soporte = request.FILES.get('Soporte')
-        if not soporte:
+        Soporte = request.FILES.get('Soporte')
+        if not Soporte:
             return Response({"error": "No se ha subido ningún archivo de soporte."}, status=status.HTTP_400_BAD_REQUEST)
         lista_producto = json.loads(request.data.get('listaProducto'))
         data_general = lista_producto
@@ -550,10 +550,10 @@ class CrearNuevoProducto(APIView):
         proyecto.producto.add(producto)
             
               # Verificar si se recibió el archivo de soporte
-        if soporte:
+        if Soporte:
             
-                soporte_base64 = base64.b64encode(soporte.read()).decode('utf-8')
-                producto.Soporte = f"data:{soporte.content_type};base64,{soporte_base64}"
+                soporte_base64 = base64.b64encode(Soporte.read()).decode('utf-8')
+                producto.Soporte = f"data:{Soporte.content_type};base64,{soporte_base64}"
                 producto.save()
         # Serializar el producto para la respuesta
         serializer = productoSerializer(producto)
