@@ -465,7 +465,7 @@ class TipoProducto(models.Model):
 class Transacciones(models.Model):
     id = models.CharField(max_length=50, primary_key=True)
     fecha = models.DateTimeField(null=True, blank=True)
-    acta = models.FileField(upload_to ='uploadsProducto/',max_length=1000, blank=True)
+    acta = models.TextField(blank=True, max_length=7000000)
     descripcion = models.CharField(max_length=50)
     class Meta:
         db_table = 'proyecto_Transacciones'
