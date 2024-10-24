@@ -8,7 +8,7 @@ from .models import (Apropiacion, Articulos, AvanceProyecto, Notificaciones, Cap
                      Industrial, Investigador, Libros, Licencia, ListaProducto, Maestria, ConfiguracionEntregableProyecto,
                      ParticipantesExternos, Posgrado, PregFinalizadoyCurso,
                      Pregrado, Producto, Proyecto, Reconocimientos, Software,
-                     TipoEventos, Transacciones, Ubicacion, UbicacionProyecto, ConfiguracionPlanTrabajo, PlanTrabajo)
+                     TipoEventos, TipoProducto,Transacciones, Ubicacion, UbicacionProyecto, ConfiguracionPlanTrabajo, PlanTrabajo)
 
 #------------------------ investigador ------------------------
 
@@ -230,7 +230,12 @@ class proyectoSerializer(serializers.ModelSerializer):
 class planTrabajoSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlanTrabajo
-        fields = '__all__' 
+        fields = '__all__'
+         
+class TipoProductoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TipoProducto
+        fields = '__all__'
 
 class configuracionPlanTrabajoSerializer(serializers.ModelSerializer):
     planTrabajo = planTrabajoSerializer(read_only=True, many=True)

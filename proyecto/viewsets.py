@@ -34,12 +34,12 @@ from .models import (Apropiacion, Articulos, AvanceProyecto, Notificaciones, Cap
                      Financiacion, Grupoinvestigacion, Imagen, Industrial,
                      Investigador, Libros, Licencia, ListaProducto, Maestria,
                      ParticipantesExternos, Posgrado, PregFinalizadoyCurso,
-                     Pregrado, Producto, Proyecto, Reconocimientos, Software,
+                     Pregrado, Producto, Proyecto, Reconocimientos, Software, TipoProducto,
                      TipoEventos, Transacciones, Ubicacion, UbicacionProyecto, PlanTrabajo,ConfiguracionPlanTrabajo)
 from .serializer import (apropiacionSerializer, articulosSerializer,
                          avanceProyectoSerializer, notificacionesSerializer,capitulosSerializer,
                          categoriaMincienciasSerializer, consultoriaSerializer,
-                         contenidoSerializer, contratoSerializer,
+                         contenidoSerializer, contratoSerializer,TipoProductoSerializer,
                          cuartilEsperadoSerializer, entidadPostuloSerializer, avanceEntregableProductoSerializer, avanceEntregableProyectoSerializer, 
                          estadoProductoSerializer, estadoProyecotSerializer, configuracionEntregableProductoSerializer, configuracionEntregableProyectoSerializer,
                          estudiantesSerializer, eventosSerializer,
@@ -163,6 +163,10 @@ class ubicacionRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
 class eventosList(generics.ListCreateAPIView):
     queryset = Eventos.objects.all()
     serializer_class = eventosSerializer
+
+class tipoProductoList(generics.ListCreateAPIView):
+    queryset = TipoProducto.objects.all()
+    serializer_class = TipoProductoSerializer
 
 class articulosList(generics.ListCreateAPIView):
     queryset = Articulos.objects.all()
@@ -590,6 +594,14 @@ class proyectoRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
             obj.porcentajeAvance = request.data.get('porcentajeAvance')
             obj.porcentajeEjecucionCorte = request.data.get('porcentajeEjecucionCorte')
             obj.porcentajeEjecucionFinCorte = request.data.get('porcentajeEjecucionFinCorte')
+            obj.cantidadProducto = request.data.get('cantidadProducto')
+            tipo_producto_id = request.data.get('tipoProducto')
+            # Verificar que se haya enviado un tipo de producto
+            if tipo_producto_id:
+                # Buscar la instancia de TipoProducto
+                tipo_producto_instance = TipoProducto.objects.get(id=tipo_producto_id)
+                # Asignar la instancia de TipoProducto al proyecto
+                obj.tipoProducto = tipo_producto_instance
             #coinvestigadores
             coinvestigadores_ids = request.data.get('coinvestigador')
             coinvestigadores = Investigador.objects.filter(numerodocumento__in=coinvestigadores_ids)

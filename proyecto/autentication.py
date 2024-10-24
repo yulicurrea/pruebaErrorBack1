@@ -25,7 +25,7 @@ from .models import (Apropiacion, Articulos, Capitulos, Consultoria, Contenido,I
                      Investigador, Libros, Licencia, ListaProducto, Maestria, AvanceEntregableProducto, AvanceEntregableProyecto,
                      PregFinalizadoyCurso, Producto, Proyecto, Reconocimientos,
                      Software, Transacciones, UbicacionProyecto, ParticipantesExternos, EstadoProducto, ConfiguracionPlanTrabajo,
-                     CategoriaMinciencias,CuartilEsperado,TipoEventos)
+                     CategoriaMinciencias,CuartilEsperado,TipoEventos, TipoProducto)
 from .serializer import (investigadorSerializer, productoSerializer,listaProductoSerializer,
                          proyectoSerializer,grupoinvestigacionSerializer, categoriaMincienciasSerializer, cuartilEsperadoSerializer)
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -126,15 +126,6 @@ class CrearProyecto(APIView):
     parser_class = (FileUploadParser,)
     def post(self, request, *args, **kwargs):
         soporte = request.FILES.get('soporte')
-        producto_data = request.data.get('producto')
-        product_data_sale = json.loads(producto_data)
-
-        producto_id = None
-        if product_data_sale.get('id') != '':
-            self.crearProductoPorProyecto(request)
-            producto =  json.loads(request.data.get('producto'))
-            producto_id = producto.get('id')        
-
         # Entidad Postulo
         entidadPostulo_data = json.loads(request.data.get('entidadPostulo', '{}'))
         entidadPostulo = None
@@ -228,6 +219,9 @@ class CrearProyecto(APIView):
             pais=ubicacionProyecto_pais,
             departamento=ubicacionProyecto_departamento
         )
+        tipo_producto_id = request.data.get('tipoProducto')  # ID del tipoProducto
+        cantidad_producto = request.data.get('cantidadProducto')  # Cantidad del producto
+        # Construir datos del proyecto
 
         proyecto_data = {
             'codigo': request.data.get('codigo'),
@@ -246,7 +240,12 @@ class CrearProyecto(APIView):
             'lineaInvestigacion': request.data.get('lineaInvestigacion'),
             'estadoProceso': 'Espera',
             'unidadAcademica': request.data.get('unidadAcademica'),
-            #'producto': Producto.objects.get(pk=producto_id) if producto_id != None else None,
+            'entidadPostulo': entidadPostulo,
+            'financiacion': financiacion,
+            'transacciones': transacciones,
+            'ubicacionProyecto': ubicacionProyecto,
+            'tipoProducto': TipoProducto.objects.get(pk=tipo_producto_id) if tipo_producto_id else None,  # Obtener el tipoProducto
+            'cantidadProducto': cantidad_producto,  # Cantidad del producto
         }
 
         proyecto_data['entidadPostulo'] = entidadPostulo
@@ -257,8 +256,7 @@ class CrearProyecto(APIView):
         proyecto = Proyecto.objects.create(**proyecto_data)  # Crea el objeto Proyecto con los datos relacionados
         
         
-        productos = Producto.objects.filter(pk=producto_id)
-        proyecto.producto.set(productos)
+        
         # vinculación coinvestigadores
         coinvestigadores_base =request.data.get('coinvestigadores')
         coinvestigadores_proceso = str(coinvestigadores_base).split(',')
@@ -292,268 +290,7 @@ class CrearProyecto(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-    def crearProductoPorProyecto(self, request):        
-        soporte = request.FILES.get('soporteProducto')
-        producto =  json.loads(request.data.get('producto'))
-        list_producto = producto.get('listaProducto')
-
-        coinvestiga_base =producto.get('coinvestigadoresProducto')
-        items_coinvestiga = str(coinvestiga_base).replace("['", "").replace("']", "").replace("'", "").replace(" ", "")
-        coinvestiga_fin = items_coinvestiga.split(',')
-        
-        estudiantes_base =producto.get('estudiantesProducto')
-        items_estudiantes = str(estudiantes_base).replace("['", "").replace("']", "").replace("'", "").replace(" ", "")
-        estudiantes_fin = items_estudiantes.split(',')
-
-        participantes_base =producto.get('participantesExternosProducto')
-        items_participantes = str(participantes_base).replace("['", "").replace("']", "").replace("'", "").replace(" ", "")
-        participantes_fin = items_participantes.split(',')
-
-
-        evento_data = list_producto.get('evento')
-        evento = None
-        if evento_data.get('fechainicio') != '':
-            evento_fechainicio = evento_data.get('fechainicio')
-            evento_fechafin = evento_data.get('fechafin')
-            evento_numparticinerno = evento_data.get('numparticinerno')
-            evento_numparticexterno = evento_data.get('numparticexterno')
-            evento_tipoevento = evento_data.get('tipoevento')
-            evento, _ = Eventos.objects.get_or_create(
-                id=Eventos.objects.count() + 1,
-                fechainicio=evento_fechainicio,
-                fechafin=evento_fechafin,
-                numparticinerno=evento_numparticinerno,
-                numparticexterno=evento_numparticexterno,
-                tipoevento=TipoEventos.objects.get(pk=int(evento_tipoevento))
-            )
-
-        articulo_data = list_producto.get('articulo')
-        articulo = None
-        if articulo_data.get('fuente') != '':
-            articulo_fuente = articulo_data.get('fuente')
-            articulo, _ = Articulos.objects.get_or_create(
-                id=Articulos.objects.count() + 1,
-                fuente=articulo_fuente
-            )
-
-        capitulo_data = list_producto.get('capitulo')
-        capitulo = None
-        if capitulo_data.get('nombrepublicacion') != '':
-            capitulo_nombrepublicacion = capitulo_data.get('nombrepublicacion')
-            capitulo_isbn = capitulo_data.get('isbn')
-            capitulo_fecha = capitulo_data.get('fecha')
-            capitulo_editorial = capitulo_data.get('editorial')
-            capitulo, _ = Capitulos.objects.get_or_create(
-                id=Capitulos.objects.count() + 1,
-                nombrepublicacion=capitulo_nombrepublicacion,
-                isbn=capitulo_isbn,
-                fecha=capitulo_fecha,
-                editorial=capitulo_editorial
-            )
-
-        libro_data = list_producto.get('libro')
-        libro = None
-        if libro_data.get('isbn') != '':
-            libro_isbn = libro_data.get('isbn')
-            libro_fecha = libro_data.get('fecha')
-            libro_editorial = libro_data.get('editorial')
-            libro_luegarpublicacion = libro_data.get('luegarpublicacion')
-            libro, _ = Libros.objects.get_or_create(
-                id=Libros.objects.count() + 1,
-                isbn=libro_isbn,
-                fecha=libro_fecha,
-                editorial=libro_editorial,
-                luegarpublicacion=libro_luegarpublicacion
-            )
-
-        software_data = list_producto.get('software')
-        software = None
-        if software_data.get('tiporegistro') != '':
-            software_tiporegistro = software_data.get('tiporegistro')
-            software_numero = software_data.get('numero')
-            software_fecha = software_data.get('fecha')
-            software_pais = software_data.get('pais')
-            software, _ = Software.objects.get_or_create(
-                id=Software.objects.count() + 1,
-                tiporegistro=software_tiporegistro,
-                numero=software_numero,
-                fecha=software_fecha,
-                pais=software_pais
-            )
-
-        prototipoIndustrial_data = list_producto.get('prototipoIndustrial')
-        prototipoIndustrial = None
-        if prototipoIndustrial_data.get('fecha') !='' :
-            prototipoIndustrial_fecha = prototipoIndustrial_data.get('fecha')
-            prototipoIndustrial_pais = prototipoIndustrial_data.get('pais')
-            prototipoIndustrial_insitutofinanciador = prototipoIndustrial_data.get('insitutofinanciador')
-            prototipoIndustrial, _ = Industrial.objects.get_or_create(
-                id=Industrial.objects.count() + 1,
-                fecha=prototipoIndustrial_fecha,
-                pais=prototipoIndustrial_pais,
-                insitutofinanciador=prototipoIndustrial_insitutofinanciador
-            )
-
-        reconocimiento_data = list_producto.get('reconocimiento')
-        reconocimiento = None
-        if reconocimiento_data.get('fecha') != '':
-            reconocimiento_fecha = reconocimiento_data.get('fecha')
-            reconocimiento_nombentidadotorgada = reconocimiento_data.get('nombentidadotorgada')
-            reconocimiento, _ = Reconocimientos.objects.get_or_create(
-                id=Reconocimientos.objects.count() + 1,
-                fecha=reconocimiento_fecha,
-                nombentidadotorgada=reconocimiento_nombentidadotorgada
-            )
-
-        consultoria_data = list_producto.get('consultoria')
-        contrato = None
-        consultoria = None
-        if consultoria_data.get('año') != '':
-            contrato_data = consultoria_data.get('contrato', {})
-            contrato = None
-            if contrato_data.get('nombre') != '':
-                contrato_nombre = contrato_data.get('nombre')
-                contrato_numero = contrato_data.get('numero')
-                contrato, _ = Contrato.objects.get_or_create(
-                    id=Contrato.objects.count() + 1,
-                    nombre=contrato_nombre,
-                    numero=contrato_numero
-                )
-            consultoria_ano = consultoria_data.get('año')
-            consultoria_nombreEntidad = consultoria_data.get('nombreEntidad')
-            consultoria, _ = Consultoria.objects.get_or_create(
-                id=Consultoria.objects.count() + 1,
-                año=consultoria_ano,
-                contrato=contrato,
-                nombreEntidad=consultoria_nombreEntidad
-            )
-
-        apropiacion_data = list_producto.get('apropiacion')
-        licencias = None
-        apropiacion = None
-        if apropiacion_data.get('fechainicio') != '':
-            licencia_data = apropiacion_data.get('licencia', {})
-            licencias = None
-            if licencia_data.get('nombre') != '':
-                licencia_nombre = licencia_data.get('nombre')
-                licencias, _ = Licencia.objects.get_or_create(
-                    id=Licencia.objects.count() + 1,
-                    nombre=licencia_nombre
-                    )
-            apropiacion_fechainicio = apropiacion_data.get('fechainicio')
-            apropiacion_fechaFin = apropiacion_data.get('fechaFin')
-            apropiacion_formato = apropiacion_data.get('formato')
-            apropiacion_medio = apropiacion_data.get('medio')
-            apropiacion_nombreEntidad = apropiacion_data.get('nombreEntidad')
-            apropiacion, _ = Apropiacion.objects.get_or_create(
-                id=Apropiacion.objects.count() + 1,
-                fechainicio=apropiacion_fechainicio,
-                fechaFin=apropiacion_fechaFin,
-                licencia=licencias,
-                formato=apropiacion_formato,
-                medio=apropiacion_medio,
-                nombreEntidad=apropiacion_nombreEntidad
-                )
-
-        contenido_data = list_producto.get('contenido')
-        contenido = None
-        if contenido_data.get('paginaWeb') != '':
-            contenido_nombreEntidad = contenido_data.get('nombreEntidad')
-            contenido_paginaWeb = contenido_data.get('paginaWeb')
-            contenido, _ = Contenido.objects.get_or_create(
-                id=Contenido.objects.count() + 1,
-                nombreEntidad=contenido_nombreEntidad,
-                paginaWeb=contenido_paginaWeb
-            )
-
-        pregFinalizadoyCurso_data = list_producto.get('pregFinalizadoyCurso')
-        pregFinalizadoyCurso= None
-        if pregFinalizadoyCurso_data.get('fechaInicio') != '':
-            pregFinalizadoyCurso_fechaInicio= pregFinalizadoyCurso_data.get('fechaInicio')
-            pregFinalizadoyCurso_reconocimientos= pregFinalizadoyCurso_data.get('reconocimientos')
-            pregFinalizadoyCurso_numeroPaginas= pregFinalizadoyCurso_data.get('numeroPaginas')
-            pregFinalizadoyCurso, _ = PregFinalizadoyCurso.objects.get_or_create(
-                id=PregFinalizadoyCurso.objects.count() + 1,
-                fechaInicio=pregFinalizadoyCurso_fechaInicio,
-                reconocimientos=pregFinalizadoyCurso_reconocimientos,
-                numeroPaginas=pregFinalizadoyCurso_numeroPaginas
-            )   
-
-        maestria_data = list_producto.get('maestria')
-        maestria = None
-        if maestria_data.get('fechaInicio') != '':
-            maestria_fechaInicio = maestria_data.get('fechaInicio')
-            maestria_institucion = maestria_data.get('institucion')
-            maestria, _ = Maestria.objects.get_or_create(
-                id=Maestria.objects.count() + 1,
-                fechaInicio=maestria_fechaInicio,
-                institucion=maestria_institucion
-            )
-
-        # Crear o obtener el objeto ListaProducto
-        lista_producto_proyectoCursoProducto = list_producto.get('proyectoCursoProducto')
-        lista_producto_proyectoFormuladoProducto = list_producto.get('proyectoFormuladoProducto')
-        lista_producto_proyectoRSUProducto= list_producto.get('proyectoRSUProducto')
-        lista_producto, _ = ListaProducto.objects.get_or_create(
-            id=ListaProducto.objects.count() + 1,
-            evento=evento,
-            articulo=articulo,
-            capitulo=capitulo,
-            libro=libro,
-            software=software,
-            prototipoIndustrial=prototipoIndustrial,
-            reconocimiento=reconocimiento,
-            consultoria=consultoria,
-            contenido=contenido,
-            pregFinalizadoyCurso=pregFinalizadoyCurso,
-            apropiacion=apropiacion,
-            maestria=maestria,
-            proyectoCursoProducto=lista_producto_proyectoCursoProducto,
-            proyectoFormuladoProducto=lista_producto_proyectoFormuladoProducto,
-            proyectoRSUProducto=lista_producto_proyectoRSUProducto
-            )
-        
-        producto_data = {
-            'id': producto.get('id'),
-            'tituloProducto': producto.get('tituloProducto'),
-            'investigador': producto.get('investigador'),
-            'publicacion': producto.get('publicacion'),
-            'porcentanjeAvanFinSemestre': producto.get('porcentanjeAvanFinSemestre'),
-            'observaciones': producto.get('observaciones'),
-            'estadoProducto': EstadoProducto.objects.get(pk=1),
-            'estadoProceso': 'Espera',
-            'porcentajeComSemestral': producto.get('porcentajeComSemestral'),
-            'porcentajeRealMensual': producto.get('porcentajeRealMensual'),
-            'origen': producto.get('origen'),
-            'categoriaMinciencias': CategoriaMinciencias.objects.get(pk=1),
-            'cuartilEsperado': CuartilEsperado.objects.get(pk=1),
-        }
-        producto_data['listaProducto'] = lista_producto
-
-        producto = Producto.objects.create(**producto_data) 
-        # vinculación coinvestigadores
-        coinvestigadores_ids = coinvestiga_fin
-        coinvestigadores = Investigador.objects.filter(correo__in=coinvestigadores_ids)
-        producto.coinvestigador.set(coinvestigadores)  # Asigna los coinvestigadores al proyecto usando set()     
-        # vinculación estudiantes
-        estudiantes_ids = estudiantes_fin
-        estudiantes = Estudiantes.objects.filter(numeroDocumento__in=estudiantes_ids)
-        producto.estudiantes.set(estudiantes)
-        # vinculación participantesExternos
-        participantesExternos_ids = participantes_fin
-        participantes_externos = ParticipantesExternos.objects.filter(numerodocumento__in=participantesExternos_ids)
-        producto.participantesExternos.set(participantes_externos)
-        
-        if soporte:
-
-            soporte_base64 = base64.b64encode(soporte.read()).decode('utf-8')
-            producto.Soporte = f"data:{soporte.content_type};base64,{soporte_base64}"
-            producto.save()
-        
-            serializer = productoSerializer(producto)
-        
-            return True
-
+    
 class CrearNuevoProducto(APIView):
     parser_class = (FileUploadParser,)
 
@@ -769,8 +506,7 @@ class CrearNuevoProducto(APIView):
             proyectoCursoProducto=lista_producto_proyectoCursoProducto,
             proyectoFormuladoProducto=lista_producto_proyectoFormuladoProducto,
             proyectoRSUProducto=lista_producto_proyectoRSUProducto
-            )
-        
+            )    
 
         producto_data = {
             'id': request.data.get('id'),

@@ -369,6 +369,7 @@ class Producto(models.Model):
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
     
     def tipo_producto(self):
+        
         if self.listaProducto.articulo is not None:
             return 'Articulo'
         elif self.listaProducto.capitulo is not None:
@@ -399,6 +400,7 @@ class Producto(models.Model):
             return 'proyectoFormuladoProducto'
         elif self.listaProducto.proyectoRSUProducto is not None:
             return 'proyectoRSUProducto'
+       
         
     class Meta:
         db_table = 'proyecto_Producto'
@@ -454,6 +456,12 @@ class Financiacion(models.Model):
     class Meta:
         db_table = 'proyecto_Financiacion'
 
+class TipoProducto(models.Model):
+    id = models.AutoField(primary_key=True)
+    estado = models.CharField(max_length=150)
+    class Meta:
+        db_table = 'proyecto_TipoProducto'
+
 class Transacciones(models.Model):
     id = models.CharField(max_length=50, primary_key=True)
     fecha = models.DateTimeField(null=True, blank=True)
@@ -507,6 +515,8 @@ class Proyecto(models.Model):
     convocatoria = models.CharField(max_length=500)
     ubicacionProyecto = models.ForeignKey(UbicacionProyecto,null=False,blank=False,on_delete=models.CASCADE)
     estado =models.ForeignKey(EstadoProyecto,null=False,blank=False,on_delete=models.CASCADE)
+    tipoProducto = models.ForeignKey(TipoProducto,null=True,blank=True,on_delete=models.CASCADE)
+    cantidadProducto = models.CharField(max_length=1500,null=True,blank=True)
     modalidad = [
         ("general", "general"),
         ("clinical", "clinical"),

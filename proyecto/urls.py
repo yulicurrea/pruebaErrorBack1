@@ -47,7 +47,7 @@ from .viewsets import (apropiacionList, apropiacionRetrieveUpdateDestroy,
                        ubicacionList, ubicacionProyectoList,
                        ubicacionProyectoRetrieveUpdateDestroy,
                        ubicacionRetrieveUpdateDestroy, ResetPasswordViewSet,
-                       ResetPasswordConfirmViewSet, ResetPasswordFormViewSet, planTrabajoList, planTrabajoRetrieveUpdateDestroy, configuracionPlanTrabajoList, configuracionPlanTrabajoRetrieveUpdateDestroy)
+                       ResetPasswordConfirmViewSet, ResetPasswordFormViewSet, planTrabajoList, planTrabajoRetrieveUpdateDestroy, configuracionPlanTrabajoList, configuracionPlanTrabajoRetrieveUpdateDestroy,configuracionEntregableProyectoList, tipoProductoList,)
 
 urlpatterns = [
     path('trazabilidad', Trazabilidad.as_view(), name='create-trazabilidad'),
@@ -73,7 +73,7 @@ urlpatterns = [
     path('ConfiguracionPlanTrabajo/<pk>', configuracionPlanTrabajoRetrieveUpdateDestroy.as_view(), name='configuracionPlanTraba-detail'),
     path('mostrar-plan-trabajo', MostrarPlanTrabajo.as_view(), name='mostrar-plan-trabajo'),
     path('mostrarPyP', MostrarPyPdeInvestigador.as_view(), name='mostrarPyP'),
-
+    path('tipoProducto', tipoProductoList.as_view(), name='create-tipoProducto-list'),
 
     path('investigador', investigadorList.as_view(), name='create-investigador-list'),
     path('grupoinvestigacion', grupoInvestigacionList.as_view(), name='create-grupoinvestigacion-list'),
