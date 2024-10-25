@@ -141,7 +141,6 @@ class CrearProyecto(APIView):
                     }
                 )
 
-        # Financiacion
         financiacion_data = json.loads(request.data.get('financiacion', '{}'))
         financiacion = None
         if financiacion_data:
@@ -156,12 +155,9 @@ class CrearProyecto(APIView):
                     }
                 )
             else:
-                # Si ninguno de los campos está presente, no se crea la instancia de Financiacion
-                # Puedes manejar esto según tus necesidades
                 print("No se proporcionaron datos suficientes para crear una instancia de Financiacion")
         else:
-            # Si no hay datos de financiacion, no se crea la instancia de Financiacion
-            print("No hay datos de financiacion en la solicitud")
+            print("No hay datos de financiación en la solicitud")
 
         
         # Transacciones
