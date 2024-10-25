@@ -126,17 +126,13 @@ class CrearProyecto(APIView):
     parser_class = (FileUploadParser,)
     def post(self, request, *args, **kwargs):
         soporte = request.FILES.get('soporte')
-        # Entidad Postulo
+        # EntidadPostulo
         entidadPostulo_data = json.loads(request.data.get('entidadPostulo', '{}'))
         entidadPostulo = None
-
         if entidadPostulo_data:
             entidadPostulo_nombreInstitucion = entidadPostulo_data.get('nombreInstitucion')
             entidadPostulo_nombreGrupo = entidadPostulo_data.get('nombreGrupo')
-
-            # Verificar si al menos uno de los campos está presente
             if entidadPostulo_nombreInstitucion or entidadPostulo_nombreGrupo:
-                # Si al menos uno de los campos está presente, crear la instancia de EntidadPostulo
                 entidadPostulo, _ = EntidadPostulo.objects.get_or_create(
                     id=EntidadPostulo.objects.count() + 1,
                     defaults={
@@ -144,25 +140,14 @@ class CrearProyecto(APIView):
                         'nombreGrupo': entidadPostulo_nombreGrupo
                     }
                 )
-            else:
-                # Si ninguno de los campos está presente, no se crea la instancia de EntidadPostulo
-                # Puedes manejar esto según tus necesidades
-                print("No se proporcionaron datos suficientes para crear una instancia de EntidadPostulo")
-        else:
-            # Si no hay datos de entidadPostulo, no se crea la instancia de EntidadPostulo
-            print("No hay datos de entidadPostulo en la solicitud")
 
         # Financiacion
         financiacion_data = json.loads(request.data.get('financiacion', '{}'))
         financiacion = None
-
         if financiacion_data:
             financiacion_valorPropuestoFin = financiacion_data.get('valorPropuestoFin')
             financiacion_valorEjecutadoFin = financiacion_data.get('valorEjecutadoFin')
-
-            # Verificar si al menos uno de los campos está presente
             if financiacion_valorPropuestoFin or financiacion_valorEjecutadoFin:
-                # Si al menos uno de los campos está presente, crear la instancia de Financiacion
                 financiacion, _ = Financiacion.objects.get_or_create(
                     id=Financiacion.objects.count() + 1,
                     defaults={
